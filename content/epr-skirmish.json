@@ -1,0 +1,876 @@
+{
+  "formatVersion": 8,
+  "contentVersion": 9,
+  "id": "epr-skirmish",
+  "name": "EPR Skirmish",
+  "rules": {
+    "extraTypes": [
+      {
+        "name": "Ship",
+        "fields": ["fast","slow","hull"],
+        "diesWhen": {"op":"lte","a":{"op":"selfCounter","kind":"hull"},"b":0},
+        "attacks": true,
+        "zoneChoices": ["lane-1","lane-2","lane-3"],
+        "damageCounter": "hull",
+        "layout": {"statFields":["fast","slow"],"counterTrack":"bottom_strip","counterKind":"hull"}
+      },
+      {
+        "name": "Station",
+        "diesWhen": {"op":"lte","a":{"op":"selfCounter","kind":"hull"},"b":0},
+        "loseOnDeath": true,
+        "damageCounter": "hull",
+        "layout": {
+          "statCorner": "none",
+          "statFields": [],
+          "counterTrack": "bottom_strip",
+          "counterKind": "hull"
+        }
+      },
+      {"name":"Leader"},
+      {"name":"Improvement"},
+      {"name":"Manoeuvre","isSpell":true,"instantSpeed":true},
+      {"name":"Directive","isSpell":true,"usesStack":false},
+      {"name":"Doctrine"}
+    ],
+    "extraZones": [
+      {"id":"lane-1","scope":"per_player","maxOccupants":1},
+      {"id":"lane-2","scope":"per_player","maxOccupants":1},
+      {"id":"lane-3","scope":"per_player","maxOccupants":1}
+    ],
+    "extraHiddenZones": [{"id":"flagships"}],
+    "combat": {"kind":"preset","name":"fastSlowLanes"},
+    "turn": {
+      "mode": "shared",
+      "phases": [
+        {
+          "name": "regroup",
+          "interactive": false,
+          "onEnter": {
+            "op": "forEach",
+            "filter": {"controller":"you"},
+            "body": {"op":"tap","target":"each","untap":true}
+          }
+        },
+        {"name":"upkeep","interactive":false},
+        {"name":"action","sorcerySpeed":true},
+        {"name":"combat","combat":true},
+        {
+          "name": "end",
+          "interactive": false,
+          "onEnter": {
+            "op": "sequence",
+            "steps": [
+              {"op":"forEach","filter":{},"body":{"op":"clearDamage","target":"each"}},
+              {
+                "op": "discard",
+                "who": "you",
+                "count": {
+                  "op": "max",
+                  "a": 0,
+                  "b": {
+                    "op": "sub",
+                    "a": {"op":"handSize","who":"you"},
+                    "b": {"op":"param","name":"maxHandSize"}
+                  }
+                }
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "params": {
+      "hand": 5,
+      "draw": 0,
+      "skipFirstDraw": false,
+      "mulligan": {"redraws":0,"bottomOne":true},
+      "maxHand": 7,
+      "players": 2,
+      "orientation": "either",
+      "poolPersistsPerTurn": true,
+      "poolStore": "store"
+    },
+    "counters": [{"name":"store","starting":0,"loseAtZero":false}],
+    "damageCounter": null,
+    "counterKinds": [{"name":"hull"},{"name":"store"}]
+  },
+  "sets": [
+    {
+      "name": "Core",
+      "cards": [
+        {
+          "faces": [
+            {
+              "name": "Relay Kestrel-9",
+              "types": ["Station"],
+              "triggers": [
+                {
+                  "op": "onYourPhase",
+                  "effect": {
+                    "op": "sequence",
+                    "steps": [
+                      {"op":"drawThenDiscard","who":"you","draw":2,"discard":1,"toZone":"exile"},
+                      {"op":"addMana","who":"you","mana":{"":2}}
+                    ]
+                  },
+                  "order": 0,
+                  "phase": "upkeep"
+                }
+              ]
+            }
+          ],
+          "entersWith": [{"kind":"hull","initial":15},{"kind":"store","initial":6}]
+        },
+        {
+          "faces": [
+            {
+              "name": "Ilsa Vray",
+              "types": ["Leader"],
+              "activated": [
+                {
+                  "cost": {"mana":{"":1},"tapSource":true},
+                  "effect": {
+                    "op": "choose",
+                    "filter": {"types":["Ship"],"controller":"you"},
+                    "body": {
+                      "op": "applyModifier",
+                      "filter": {"types":["Ship"],"only":"chosen"},
+                      "ops": [{"op":"plusField","field":"fast","amount":1}],
+                      "duration": {"kind":"endOfTurn"}
+                    }
+                  },
+                  "name": "target Ship gets +1 FD",
+                  "oncePerTurn": false
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "faces": [
+            {
+              "name": "Kestrel Vanguard",
+              "types": ["Ship","Flagship"],
+              "fields": {"fast":2,"slow":3,"hull":6},
+              "ruleMods": [
+                {
+                  "op": "reduceDamage",
+                  "filter": {"types":["Ship"],"controller":"you","excludesSource":true},
+                  "amount": 1
+                }
+              ]
+            }
+          ],
+          "entersWith": [{"kind":"hull","initial":6}],
+          "cost": {"mana":{"":3}}
+        },
+        {
+          "faces": [{"name":"Salvage Scout","types":["Ship","Scout"],"fields":{"fast":1,"hull":1}}],
+          "entersWith": [{"kind":"hull","initial":1}],
+          "cost": {"mana":{"":1}}
+        },
+        {
+          "faces": [
+            {
+              "name": "Ablative Plating",
+              "types": ["Improvement"],
+              "triggers": [
+                {
+                  "op": "selfEnters",
+                  "effect": {
+                    "op": "choose",
+                    "filter": {"controller":"you","excludesSource":true},
+                    "body": {"op":"attach","host":"chosen"}
+                  },
+                  "order": 0
+                }
+              ],
+              "replacements": [{"kind":"damageToSacrificeSelf","filter":{"onlyHost":true}}]
+            }
+          ],
+          "cost": {"mana":{"":2}},
+          "requires": {"controller":"you"}
+        },
+        {
+          "faces": [
+            {
+              "name": "Fleet Command Uplink",
+              "types": ["Improvement"],
+              "statics": [
+                {
+                  "filter": {"types":["Ship"],"controller":"you"},
+                  "ops": [{"op":"plusField","field":"fast","amount":1}],
+                  "condition": {"op":"gte","a":{"op":"count","filter":{"onlyHost":true}},"b":1}
+                }
+              ],
+              "triggers": [
+                {
+                  "op": "selfEnters",
+                  "effect": {
+                    "op": "choose",
+                    "filter": {"types":["Station"],"controller":"you"},
+                    "body": {"op":"attach","host":"chosen"}
+                  },
+                  "order": 0
+                }
+              ]
+            }
+          ],
+          "cost": {"mana":{"":3}},
+          "requires": {"types":["Station"],"controller":"you"}
+        },
+        {
+          "faces": [
+            {
+              "name": "Evasive Burn",
+              "types": ["Manoeuvre"],
+              "castEffect": {
+                "op": "choose",
+                "filter": {"types":["Ship"],"controller":"you"},
+                "body": {
+                  "op": "preventDamage",
+                  "target": "chosen",
+                  "amount": 1,
+                  "all": false,
+                  "duration": {"kind":"endOfTurn"},
+                  "mode": "instances",
+                  "onlyStep": "slow"
+                }
+              }
+            }
+          ],
+          "cost": {"mana":{"":1}}
+        },
+        {
+          "faces": [
+            {
+              "name": "Point Defence Volley",
+              "types": ["Manoeuvre"],
+              "castEffect": {
+                "op": "choose",
+                "filter": {"types":["Ship"]},
+                "body": {"op":"dealDamage","amount":2,"target":"chosen"}
+              }
+            }
+          ],
+          "cost": {"mana":{"":2}}
+        },
+        {
+          "faces": [
+            {
+              "name": "Full Burn Directive",
+              "types": ["Directive"],
+              "castEffect": {
+                "op": "applyModifier",
+                "filter": {"types":["Ship"],"controller":"you"},
+                "ops": [{"op":"plusField","field":"fast","amount":1}],
+                "duration": {"kind":"endOfTurn"}
+              }
+            }
+          ],
+          "cost": {"mana":{"":2}}
+        },
+        {
+          "faces": [
+            {
+              "name": "Concord Picket",
+              "types": ["Ship","Flagship"],
+              "fields": {"fast":1,"slow":1,"hull":4},
+              "statics": [
+                {
+                  "filter": {"types":["Ship"],"controller":"you","excludesSource":true},
+                  "ops": [{"op":"plusField","field":"slow","amount":1}]
+                }
+              ]
+            }
+          ],
+          "entersWith": [{"kind":"hull","initial":4}],
+          "cost": {"mana":{"":2}}
+        },
+        {
+          "faces": [
+            {
+              "name": "Kestrel Paragon",
+              "types": ["Ship","Flagship"],
+              "fields": {"fast":4,"slow":4,"hull":8},
+              "statics": [
+                {
+                  "filter": {"only":"self"},
+                  "ops": [
+                    {"op":"plusField","field":"fast","amount":2},
+                    {"op":"plusField","field":"slow","amount":2}
+                  ],
+                  "condition": {
+                    "op": "lte",
+                    "a": {
+                      "op": "count",
+                      "filter": {"types":["Ship"],"controller":"you","excludesSource":true}
+                    },
+                    "b": 0
+                  }
+                }
+              ]
+            }
+          ],
+          "entersWith": [{"kind":"hull","initial":8}],
+          "cost": {"mana":{"":6}}
+        },
+        {
+          "faces": [
+            {
+              "name": "Requisition Audit",
+              "types": ["Manoeuvre"],
+              "castEffect": {
+                "op": "choose",
+                "filter": {"types":["Improvement"]},
+                "body": {"op":"destroy","target":"chosen"}
+              }
+            }
+          ],
+          "cost": {"mana":{"":2}}
+        },
+        {
+          "faces": [
+            {
+              "name": "Pyre of the Ninth Choir",
+              "types": ["Station"],
+              "triggers": [
+                {
+                  "op": "onYourPhase",
+                  "effect": {
+                    "op": "sequence",
+                    "steps": [
+                      {"op":"draw","who":"you","count":1},
+                      {"op":"addMana","who":"you","mana":{"":1}}
+                    ]
+                  },
+                  "order": 0,
+                  "phase": "upkeep"
+                }
+              ]
+            }
+          ],
+          "entersWith": [{"kind":"hull","initial":24},{"kind":"store","initial":2}]
+        },
+        {
+          "faces": [
+            {
+              "name": "Confessor Maal",
+              "types": ["Leader"],
+              "activated": [
+                {
+                  "cost": {
+                    "tapSource": true,
+                    "payFrom": {
+                      "counter": "hull",
+                      "n": 2,
+                      "filter": {"types":["Station"],"controller":"you"}
+                    }
+                  },
+                  "effect": {"op":"draw","who":"you","count":1},
+                  "name": "exhaust, pay 2 hull: draw a card",
+                  "oncePerTurn": false
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "faces": [
+            {
+              "name": "Censer of Saint Vex",
+              "types": ["Ship","Flagship"],
+              "fields": {"fast":3,"slow":1,"hull":5},
+              "activated": [
+                {
+                  "cost": {
+                    "tapSource": true,
+                    "payFrom": {
+                      "counter": "hull",
+                      "n": 3,
+                      "filter": {"types":["Station"],"controller":"you"}
+                    }
+                  },
+                  "effect": {
+                    "op": "choose",
+                    "filter": {"types":["Ship"]},
+                    "body": {"op":"dealDamage","amount":3,"target":"chosen"}
+                  },
+                  "name": "exhaust, pay 3 hull: 3 damage to any Ship",
+                  "oncePerTurn": false
+                }
+              ]
+            }
+          ],
+          "entersWith": [{"kind":"hull","initial":5}],
+          "cost": {"mana":{"":3}}
+        },
+        {
+          "faces": [{"name":"Ashbearer","types":["Ship"],"fields":{"fast":2,"hull":2}}],
+          "entersWith": [{"kind":"hull","initial":2}],
+          "cost": {"mana":{"":1}}
+        },
+        {
+          "faces": [{"name":"Pyre Acolyte","types":["Ship"],"fields":{"slow":3,"hull":1}}],
+          "entersWith": [{"kind":"hull","initial":1}],
+          "cost": {
+            "mana": {"":1},
+            "payFrom": {"counter":"hull","n":1,"filter":{"types":["Station"],"controller":"you"}}
+          }
+        },
+        {
+          "faces": [
+            {
+              "name": "Bone Reliquary",
+              "types": ["Improvement"],
+              "statics": [
+                {"filter":{"onlyHost":true},"ops":[{"op":"plusField","field":"fast","amount":2}]}
+              ],
+              "triggers": [
+                {
+                  "op": "selfEnters",
+                  "effect": {
+                    "op": "choose",
+                    "filter": {"types":["Ship"],"controller":"you"},
+                    "body": {"op":"attach","host":"chosen"}
+                  },
+                  "order": 0
+                }
+              ]
+            }
+          ],
+          "cost": {"mana":{"":1}},
+          "requires": {"types":["Ship"],"controller":"you"}
+        },
+        {
+          "faces": [
+            {
+              "name": "Immolate",
+              "types": ["Manoeuvre"],
+              "castEffect": {
+                "op": "choose",
+                "filter": {"types":["Ship"]},
+                "body": {"op":"dealDamage","amount":3,"target":"chosen"}
+              }
+            }
+          ],
+          "cost": {
+            "mana": {"":1},
+            "payFrom": {"counter":"hull","n":2,"filter":{"types":["Station"],"controller":"you"}}
+          }
+        },
+        {
+          "faces": [
+            {
+              "name": "Ninefold Tithe",
+              "types": ["Directive"],
+              "castEffect": {"op":"draw","who":"you","count":2}
+            }
+          ],
+          "cost": {
+            "payFrom": {"counter":"hull","n":4,"filter":{"types":["Station"],"controller":"you"}}
+          }
+        },
+        {
+          "faces": [{"name":"Ash Herald","types":["Ship","Flagship"],"fields":{"fast":4,"hull":3}}],
+          "entersWith": [{"kind":"hull","initial":3}],
+          "cost": {
+            "mana": {"":2},
+            "payFrom": {"counter":"hull","n":2,"filter":{"types":["Station"],"controller":"you"}}
+          }
+        },
+        {
+          "faces": [
+            {
+              "name": "Last Rite Hulk",
+              "types": ["Ship","Flagship"],
+              "fields": {"fast":3,"slow":3,"hull":9}
+            }
+          ],
+          "entersWith": [{"kind":"hull","initial":9}],
+          "cost": {
+            "mana": {"":3},
+            "payFrom": {"counter":"hull","n":6,"filter":{"types":["Station"],"controller":"you"}}
+          }
+        },
+        {
+          "faces": [
+            {
+              "name": "Rite of Unmaking",
+              "types": ["Manoeuvre"],
+              "castEffect": {
+                "op": "choose",
+                "filter": {"types":["Doctrine"]},
+                "body": {"op":"destroy","target":"chosen"}
+              }
+            }
+          ],
+          "cost": {
+            "mana": {"":1},
+            "payFrom": {"counter":"hull","n":2,"filter":{"types":["Station"],"controller":"you"}}
+          }
+        },
+        {
+          "faces": [
+            {
+              "name": "Hollow Sanctum",
+              "types": ["Station"],
+              "triggers": [
+                {
+                  "op": "onYourPhase",
+                  "effect": {
+                    "op": "sequence",
+                    "steps": [
+                      {"op":"draw","who":"you","count":1},
+                      {"op":"addMana","who":"you","mana":{"":2}}
+                    ]
+                  },
+                  "order": 0,
+                  "phase": "upkeep"
+                }
+              ]
+            }
+          ],
+          "entersWith": [{"kind":"hull","initial":14},{"kind":"store","initial":3}]
+        },
+        {
+          "faces": [
+            {
+              "name": "Deacon Ves",
+              "types": ["Leader"],
+              "activated": [
+                {
+                  "cost": {
+                    "mana": {"":1},
+                    "additional": {
+                      "op": "sacrifice",
+                      "who": "you",
+                      "count": 1,
+                      "filter": {"types":["Ship"],"controller":"you"}
+                    },
+                    "tapSource": true
+                  },
+                  "effect": {"op":"draw","who":"you","count":1},
+                  "name": "{1}, exhaust, sacrifice a Ship: draw a card",
+                  "oncePerTurn": false
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "faces": [
+            {
+              "name": "The Sable Loom",
+              "types": ["Ship","Flagship"],
+              "fields": {"slow":3,"hull":7},
+              "triggers": [
+                {
+                  "op": "onYourPhase",
+                  "effect": {
+                    "op": "createToken",
+                    "chars": {"name":"Acolyte Shell","types":["Ship"],"fields":{"hull":1,"fast":1}},
+                    "count": 1
+                  },
+                  "order": 0,
+                  "phase": "upkeep"
+                }
+              ]
+            }
+          ],
+          "entersWith": [{"kind":"hull","initial":7}],
+          "cost": {"mana":{"":4}}
+        },
+        {
+          "faces": [
+            {
+              "name": "Chorus Hulk",
+              "types": ["Ship","Flagship"],
+              "fields": {"fast":1,"slow":1,"hull":5},
+              "activated": [
+                {
+                  "cost": {
+                    "additional": {
+                      "op": "sacrifice",
+                      "who": "you",
+                      "count": 1,
+                      "filter": {"types":["Ship"],"controller":"you","excludesSource":true}
+                    },
+                    "tapSource": true
+                  },
+                  "effect": {
+                    "op": "applyModifier",
+                    "filter": {"types":["Ship"],"only":"self"},
+                    "ops": [{"op":"plusField","field":"fast","amount":2}],
+                    "duration": {"kind":"endOfTurn"}
+                  },
+                  "name": "exhaust, sacrifice another Ship: this gets +2 FD",
+                  "oncePerTurn": false
+                }
+              ]
+            }
+          ],
+          "entersWith": [{"kind":"hull","initial":5}],
+          "cost": {"mana":{"":3}}
+        },
+        {
+          "faces": [
+            {
+              "name": "Ossuary Barge",
+              "types": ["Ship","Flagship"],
+              "fields": {"slow":1,"hull":6},
+              "triggers": [
+                {
+                  "op": "selfEnters",
+                  "effect": {
+                    "op": "createToken",
+                    "chars": {"name":"Acolyte Shell","types":["Ship"],"fields":{"hull":1,"fast":1}},
+                    "count": 2
+                  },
+                  "order": 0
+                }
+              ]
+            }
+          ],
+          "entersWith": [{"kind":"hull","initial":6}],
+          "cost": {"mana":{"":3}}
+        },
+        {
+          "faces": [{"name":"Acolyte Shell","types":["Ship"],"fields":{"fast":1,"hull":1}}],
+          "entersWith": [{"kind":"hull","initial":1}],
+          "cost": {"mana":{"":1}}
+        },
+        {
+          "faces": [
+            {
+              "name": "Bone Choir Rig",
+              "types": ["Improvement"],
+              "ruleMods": [
+                {
+                  "op": "reduceDamage",
+                  "filter": {"types":["Ship"],"controller":"you"},
+                  "amount": 1,
+                  "condition": {"op":"gte","a":{"op":"count","filter":{"onlyHost":true}},"b":1}
+                }
+              ],
+              "triggers": [
+                {
+                  "op": "selfEnters",
+                  "effect": {
+                    "op": "choose",
+                    "filter": {"types":["Ship"],"controller":"you"},
+                    "body": {"op":"attach","host":"chosen"}
+                  },
+                  "order": 0
+                }
+              ]
+            }
+          ],
+          "cost": {"mana":{"":2}},
+          "requires": {"types":["Ship"],"controller":"you"}
+        },
+        {
+          "faces": [
+            {
+              "name": "Tithe of Shells",
+              "types": ["Manoeuvre"],
+              "castEffect": {"op":"draw","who":"you","count":2}
+            }
+          ],
+          "cost": {
+            "mana": {"":1},
+            "additional": {
+              "op": "sacrifice",
+              "who": "you",
+              "count": 1,
+              "filter": {"types":["Ship"],"controller":"you"}
+            }
+          }
+        },
+        {
+          "faces": [
+            {
+              "name": "Litany of Shells",
+              "types": ["Directive"],
+              "castEffect": {
+                "op": "createToken",
+                "chars": {"name":"Acolyte Shell","types":["Ship"],"fields":{"hull":1,"fast":1}},
+                "count": 2
+              }
+            }
+          ],
+          "cost": {"mana":{"":2}}
+        },
+        {
+          "faces": [
+            {
+              "name": "Strip the Hulk",
+              "types": ["Directive"],
+              "castEffect": {
+                "op": "choose",
+                "filter": {"types":["Improvement"]},
+                "body": {"op":"destroy","target":"chosen"}
+              }
+            }
+          ],
+          "cost": {
+            "mana": {"":1},
+            "additional": {
+              "op": "sacrifice",
+              "who": "you",
+              "count": 1,
+              "filter": {"types":["Ship"],"controller":"you"}
+            }
+          }
+        },
+        {
+          "faces": [
+            {
+              "name": "Standing Requisition",
+              "types": ["Doctrine"],
+              "triggers": [
+                {
+                  "op": "selfEnters",
+                  "effect": {"op":"gainLife","who":"you","amount":2,"counter":"store"},
+                  "order": 0
+                },
+                {
+                  "op": "onYourPhase",
+                  "effect": {"op":"addMana","who":"you","mana":{"":1}},
+                  "order": 0,
+                  "phase": "upkeep"
+                }
+              ]
+            }
+          ],
+          "cost": {"mana":{"":2}}
+        },
+        {
+          "faces": [
+            {
+              "name": "Harmonic Coupler",
+              "types": ["Improvement"],
+              "statics": [
+                {
+                  "filter": {"types":["Ship"],"onlyHost":true},
+                  "ops": [
+                    {"op":"plusField","field":"fast","amount":1},
+                    {"op":"plusField","field":"slow","amount":1}
+                  ]
+                }
+              ],
+              "triggers": [
+                {
+                  "op": "selfEnters",
+                  "effect": {
+                    "op": "choose",
+                    "filter": {"controller":"you"},
+                    "body": {"op":"attach","host":"chosen"}
+                  },
+                  "order": 0
+                },
+                {
+                  "op": "onYourPhase",
+                  "effect": {
+                    "op": "if",
+                    "cond": {
+                      "op": "gte",
+                      "a": {"op":"count","filter":{"types":["Station"],"onlyHost":true}},
+                      "b": 1
+                    },
+                    "then": {"op":"addMana","who":"you","mana":{"":1}},
+                    "otherwise": {"op":"noOp"}
+                  },
+                  "order": 0,
+                  "phase": "upkeep"
+                }
+              ]
+            }
+          ],
+          "cost": {"mana":{"":2}}
+        },
+        {
+          "faces": [
+            {
+              "name": "Tender Skiff",
+              "types": ["Ship"],
+              "fields": {"hull":1},
+              "triggers": [
+                {
+                  "op": "onYourPhase",
+                  "effect": {"op":"addMana","who":"you","mana":{"":2}},
+                  "order": 0,
+                  "phase": "upkeep"
+                }
+              ]
+            }
+          ],
+          "entersWith": [{"kind":"hull","initial":1}],
+          "cost": {"mana":{"":2}}
+        }
+      ]
+    }
+  ],
+  "decks": [
+    {
+      "name": "Kestrel Concord Starter",
+      "entries": [
+        {"card":"Salvage Scout","n":8},
+        {"card":"Ablative Plating","n":3},
+        {"card":"Fleet Command Uplink","n":1},
+        {"card":"Evasive Burn","n":3},
+        {"card":"Point Defence Volley","n":3},
+        {"card":"Full Burn Directive","n":2},
+        {"card":"Standing Requisition","n":2},
+        {"card":"Harmonic Coupler","n":2},
+        {"card":"Tender Skiff","n":2},
+        {"card":"Requisition Audit","n":2}
+      ],
+      "slots": {
+        "Station": ["Relay Kestrel-9"],
+        "Leader": ["Ilsa Vray"],
+        "Flagship": ["Kestrel Vanguard","Concord Picket","Kestrel Paragon"]
+      }
+    },
+    {
+      "name": "Ashen Choir Starter",
+      "entries": [
+        {"card":"Ashbearer","n":6},
+        {"card":"Pyre Acolyte","n":4},
+        {"card":"Bone Reliquary","n":3},
+        {"card":"Immolate","n":4},
+        {"card":"Ninefold Tithe","n":3},
+        {"card":"Rite of Unmaking","n":2},
+        {"card":"Harmonic Coupler","n":2}
+      ],
+      "slots": {
+        "Station": ["Pyre of the Ninth Choir"],
+        "Leader": ["Confessor Maal"],
+        "Flagship": ["Censer of Saint Vex","Ash Herald","Last Rite Hulk"]
+      }
+    },
+    {
+      "name": "Sable Congregation Starter",
+      "entries": [
+        {"card":"Acolyte Shell","n":8},
+        {"card":"Bone Choir Rig","n":3},
+        {"card":"Tithe of Shells","n":4},
+        {"card":"Litany of Shells","n":3},
+        {"card":"Strip the Hulk","n":2},
+        {"card":"Standing Requisition","n":2}
+      ],
+      "slots": {
+        "Station": ["Hollow Sanctum"],
+        "Leader": ["Deacon Ves"],
+        "Flagship": ["The Sable Loom","Chorus Hulk","Ossuary Barge"]
+      }
+    }
+  ],
+  "deckRules": {
+    "slots": [
+      {"name":"Station","types":["Station"]},
+      {"name":"Leader","types":["Leader"]},
+      {"name":"Flagship","types":["Flagship"],"count":3,"startsIn":"flagships"}
+    ]
+  }
+}

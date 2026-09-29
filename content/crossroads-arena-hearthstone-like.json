@@ -1,0 +1,80 @@
+{
+  "formatVersion": 8,
+  "id": "sample-hs",
+  "name": "Crossroads Arena (Hearthstone-like)",
+  "rules": {
+    "extraTypes": [
+      {"name":"Minion","fields":["power","health"],"attacks":true},
+      {"name":"Spell","isSpell":true},
+      {"name":"Hero","fields":["health"]}
+    ],
+    "combat": {"kind":"preset","name":"hearthstone"},
+    "params": {
+      "hand": 3,
+      "draw": 1,
+      "skipFirstDraw": false,
+      "mulligan": {"redraws":0,"bottomOne":true},
+      "maxHand": 10,
+      "players": 2,
+      "orientation": "either",
+      "poolPersistsPerTurn": false
+    },
+    "resources": {"kind":"ramp","perTurn":1,"cap":10,"refill":true,"start":0,"key":""},
+    "counters": [{"name":"life","starting":30,"loseAtZero":true}],
+    "counterKinds": []
+  },
+  "sets": [
+    {
+      "name": "Core",
+      "cards": [
+        {"faces":[{"name":"Archmage Kel","types":["Hero"],"fields":{"health":30}}]},
+        {"faces":[{"name":"Glimmer Mote","types":["Minion"],"fields":{"power":1,"health":1}}]},
+        {"faces":[{"name":"Marsh Lurker","types":["Minion"],"fields":{"power":2,"health":3}}]},
+        {"faces":[{"name":"Frostpeak Beast","types":["Minion"],"fields":{"power":4,"health":5}}]},
+        {
+          "faces": [
+            {
+              "name": "Novice Scribe",
+              "types": ["Minion"],
+              "fields": {"power":1,"health":3},
+              "triggers": [
+                {"op":"selfEnters","effect":{"op":"draw","who":"you","count":1},"order":0}
+              ]
+            }
+          ]
+        },
+        {"faces":[{"name":"Stonehide Brute","types":["Minion"],"fields":{"power":6,"health":7}}]},
+        {
+          "faces": [
+            {"name":"Spark Dart","types":["Spell"],"castEffect":{"op":"damageOpponent","amount":2}}
+          ]
+        },
+        {
+          "faces": [
+            {
+              "name": "Mending Word",
+              "types": ["Spell"],
+              "castEffect": {"op":"gainLife","who":"you","amount":4}
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "decks": [
+    {
+      "name": "Tempo",
+      "entries": [
+        {"card":"Glimmer Mote","n":3},
+        {"card":"Marsh Lurker","n":4},
+        {"card":"Frostpeak Beast","n":4},
+        {"card":"Novice Scribe","n":3},
+        {"card":"Stonehide Brute","n":3},
+        {"card":"Spark Dart","n":3},
+        {"card":"Mending Word","n":2}
+      ],
+      "slots": {"Hero":["Archmage Kel"]}
+    }
+  ],
+  "deckRules": {"minSize":20,"maxSize":40,"maxCopies":4,"slots":[{"name":"Hero","types":["Hero"]}]}
+}

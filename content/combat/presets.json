@@ -1,0 +1,3833 @@
+{
+  "formatVersion": 8,
+  "presets": {
+    "mtg": {
+      "program": {
+        "op": "declareAttackers",
+        "eligible": {
+          "controller": "you",
+          "where": {
+            "op": "and",
+            "terms": [
+              {"op":"not","term":{"op":"isExhausted","target":"subject"}},
+              {"op":"not","term":{"op":"hasKeyword","target":"subject","keyword":"defender"}}
+            ]
+          }
+        },
+        "staysReady": {"where":{"op":"hasKeyword","target":"subject","keyword":"vigilance"}},
+        "then": {
+          "op": "sequence",
+          "steps": [
+            {"op":"combatWindow"},
+            {
+              "op": "declareBlockers",
+              "eligible": {
+                "controller": "you",
+                "where": {"op":"not","term":{"op":"isExhausted","target":"subject"}}
+              },
+              "then": {
+                "op": "sequence",
+                "steps": [
+                  {"op":"combatWindow"},
+                  {
+                    "op": "combatDamage",
+                    "step": "first-strike",
+                    "amount": {"op":"targetField","target":"subject","key":"power"},
+                    "acts": {
+                      "where": {
+                        "op": "or",
+                        "terms": [
+                          {"op":"hasKeyword","target":"subject","keyword":"double strike"},
+                          {"op":"hasKeyword","target":"subject","keyword":"first strike"}
+                        ]
+                      }
+                    },
+                    "lethal": {
+                      "where": {"op":"hasKeyword","target":"subject","keyword":"deathtouch"}
+                    },
+                    "tramples": {
+                      "where": {
+                        "op": "or",
+                        "terms": [
+                          {"op":"hasKeyword","target":"subject","keyword":"trample"},
+                          {"op":"hasKeyword","target":"subject","keyword":"piercing"}
+                        ]
+                      }
+                    },
+                    "minBlockers": {
+                      "op": "add",
+                      "a": 1,
+                      "b": {
+                        "op": "count",
+                        "filter": {
+                          "only": "subject",
+                          "where": {"op":"hasKeyword","target":"subject","keyword":"menace"}
+                        }
+                      }
+                    }
+                  },
+                  {
+                    "op": "combatDamage",
+                    "step": "regular",
+                    "amount": {"op":"targetField","target":"subject","key":"power"},
+                    "acts": {
+                      "where": {
+                        "op": "or",
+                        "terms": [
+                          {"op":"hasKeyword","target":"subject","keyword":"double strike"},
+                          {
+                            "op": "not",
+                            "term": {"op":"hasKeyword","target":"subject","keyword":"first strike"}
+                          }
+                        ]
+                      }
+                    },
+                    "lethal": {
+                      "where": {"op":"hasKeyword","target":"subject","keyword":"deathtouch"}
+                    },
+                    "tramples": {
+                      "where": {
+                        "op": "or",
+                        "terms": [
+                          {"op":"hasKeyword","target":"subject","keyword":"trample"},
+                          {"op":"hasKeyword","target":"subject","keyword":"piercing"}
+                        ]
+                      }
+                    },
+                    "minBlockers": {
+                      "op": "add",
+                      "a": 1,
+                      "b": {
+                        "op": "count",
+                        "filter": {
+                          "only": "subject",
+                          "where": {"op":"hasKeyword","target":"subject","keyword":"menace"}
+                        }
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      }
+    },
+    "fastSlow": {
+      "program": {
+        "op": "sequence",
+        "steps": [
+          {
+            "op": "freeAttacks",
+            "step": "fast",
+            "actors": {
+              "where": {
+                "op": "or",
+                "terms": [
+                  {"op":"hasField","target":"subject","key":"fast"},
+                  {"op":"hasField","target":"subject","key":"slow"}
+                ]
+              }
+            },
+            "body": {"amount":{"op":"targetField","target":"attacker","key":"fast"}},
+            "lethal": {"where":{"op":"hasKeyword","target":"subject","keyword":"deathtouch"}},
+            "window": true
+          },
+          {
+            "op": "freeAttacks",
+            "step": "slow",
+            "actors": {
+              "where": {
+                "op": "or",
+                "terms": [
+                  {"op":"hasField","target":"subject","key":"fast"},
+                  {"op":"hasField","target":"subject","key":"slow"}
+                ]
+              }
+            },
+            "body": {"amount":{"op":"targetField","target":"attacker","key":"slow"}},
+            "lethal": {"where":{"op":"hasKeyword","target":"subject","keyword":"deathtouch"}},
+            "window": true
+          }
+        ]
+      }
+    },
+    "fastSlowLanes": {
+      "program": {
+        "op": "sequence",
+        "steps": [
+          {
+            "op": "freeAttacks",
+            "step": "fast",
+            "actors": {
+              "where": {
+                "op": "or",
+                "terms": [
+                  {"op":"hasField","target":"subject","key":"fast"},
+                  {"op":"hasField","target":"subject","key":"slow"}
+                ]
+              }
+            },
+            "body": {
+              "amount": {"op":"targetField","target":"attacker","key":"fast"},
+              "reachesFace": {
+                "op": "or",
+                "terms": [
+                  {
+                    "op": "and",
+                    "terms": [
+                      {
+                        "op": "and",
+                        "terms": [
+                          {"op":"gte","a":{"op":"laneOf","target":"attacker"},"b":0},
+                          {
+                            "op": "or",
+                            "terms": [
+                              {"op":"atDepth","target":"attacker","depth":"front"},
+                              {"op":"atDepth","target":"attacker","depth":"back"}
+                            ]
+                          }
+                        ]
+                      },
+                      {
+                        "op": "and",
+                        "terms": [
+                          {"op":"gte","a":{"op":"laneOf","target":"attacker"},"b":0},
+                          {
+                            "op": "not",
+                            "term": {
+                              "op": "gte",
+                              "a": {
+                                "op": "count",
+                                "filter": {
+                                  "controller": {"k":"defending"},
+                                  "where": {
+                                    "op": "and",
+                                    "terms": [
+                                      {
+                                        "op": "eq",
+                                        "a": {"op":"laneOf","target":"subject"},
+                                        "b": {"op":"laneOf","target":"attacker"}
+                                      },
+                                      {
+                                        "op": "and",
+                                        "terms": [
+                                          {"op":"gte","a":{"op":"laneOf","target":"subject"},"b":0},
+                                          {
+                                            "op": "or",
+                                            "terms": [
+                                              {"op":"atDepth","target":"subject","depth":"front"},
+                                              {"op":"atDepth","target":"subject","depth":"back"}
+                                            ]
+                                          }
+                                        ]
+                                      }
+                                    ]
+                                  }
+                                }
+                              },
+                              "b": 1
+                            }
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "op": "and",
+                    "terms": [
+                      {
+                        "op": "not",
+                        "term": {
+                          "op": "and",
+                          "terms": [
+                            {"op":"gte","a":{"op":"laneOf","target":"attacker"},"b":0},
+                            {
+                              "op": "or",
+                              "terms": [
+                                {"op":"atDepth","target":"attacker","depth":"front"},
+                                {"op":"atDepth","target":"attacker","depth":"back"}
+                              ]
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "op": "not",
+                        "term": {
+                          "op": "and",
+                          "terms": [
+                            {"op":"not","term":{"op":"zoneOwner","target":"attacker"}},
+                            {
+                              "op": "gte",
+                              "a": {
+                                "op": "count",
+                                "filter": {
+                                  "where": {
+                                    "op": "zoneOwner",
+                                    "target": "subject",
+                                    "who": {"k":"defending"}
+                                  },
+                                  "zone": {"scope":"sameDef","of":"attacker"}
+                                }
+                              },
+                              "b": 1
+                            }
+                          ]
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            "lethal": {"where":{"op":"hasKeyword","target":"subject","keyword":"deathtouch"}},
+            "window": true
+          },
+          {
+            "op": "freeAttacks",
+            "step": "slow",
+            "actors": {
+              "where": {
+                "op": "or",
+                "terms": [
+                  {"op":"hasField","target":"subject","key":"fast"},
+                  {"op":"hasField","target":"subject","key":"slow"}
+                ]
+              }
+            },
+            "body": {
+              "amount": {"op":"targetField","target":"attacker","key":"slow"},
+              "reachesFace": {
+                "op": "or",
+                "terms": [
+                  {
+                    "op": "and",
+                    "terms": [
+                      {
+                        "op": "and",
+                        "terms": [
+                          {"op":"gte","a":{"op":"laneOf","target":"attacker"},"b":0},
+                          {
+                            "op": "or",
+                            "terms": [
+                              {"op":"atDepth","target":"attacker","depth":"front"},
+                              {"op":"atDepth","target":"attacker","depth":"back"}
+                            ]
+                          }
+                        ]
+                      },
+                      {
+                        "op": "and",
+                        "terms": [
+                          {"op":"gte","a":{"op":"laneOf","target":"attacker"},"b":0},
+                          {
+                            "op": "not",
+                            "term": {
+                              "op": "gte",
+                              "a": {
+                                "op": "count",
+                                "filter": {
+                                  "controller": {"k":"defending"},
+                                  "where": {
+                                    "op": "and",
+                                    "terms": [
+                                      {
+                                        "op": "eq",
+                                        "a": {"op":"laneOf","target":"subject"},
+                                        "b": {"op":"laneOf","target":"attacker"}
+                                      },
+                                      {
+                                        "op": "and",
+                                        "terms": [
+                                          {"op":"gte","a":{"op":"laneOf","target":"subject"},"b":0},
+                                          {
+                                            "op": "or",
+                                            "terms": [
+                                              {"op":"atDepth","target":"subject","depth":"front"},
+                                              {"op":"atDepth","target":"subject","depth":"back"}
+                                            ]
+                                          }
+                                        ]
+                                      }
+                                    ]
+                                  }
+                                }
+                              },
+                              "b": 1
+                            }
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "op": "and",
+                    "terms": [
+                      {
+                        "op": "not",
+                        "term": {
+                          "op": "and",
+                          "terms": [
+                            {"op":"gte","a":{"op":"laneOf","target":"attacker"},"b":0},
+                            {
+                              "op": "or",
+                              "terms": [
+                                {"op":"atDepth","target":"attacker","depth":"front"},
+                                {"op":"atDepth","target":"attacker","depth":"back"}
+                              ]
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "op": "not",
+                        "term": {
+                          "op": "and",
+                          "terms": [
+                            {"op":"not","term":{"op":"zoneOwner","target":"attacker"}},
+                            {
+                              "op": "gte",
+                              "a": {
+                                "op": "count",
+                                "filter": {
+                                  "where": {
+                                    "op": "zoneOwner",
+                                    "target": "subject",
+                                    "who": {"k":"defending"}
+                                  },
+                                  "zone": {"scope":"sameDef","of":"attacker"}
+                                }
+                              },
+                              "b": 1
+                            }
+                          ]
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            "lethal": {"where":{"op":"hasKeyword","target":"subject","keyword":"deathtouch"}},
+            "window": true
+          }
+        ]
+      }
+    },
+    "fastSlowLanesLocked": {
+      "program": {
+        "op": "sequence",
+        "steps": [
+          {
+            "op": "freeAttacks",
+            "step": "fast",
+            "actors": {
+              "where": {
+                "op": "or",
+                "terms": [
+                  {"op":"hasField","target":"subject","key":"fast"},
+                  {"op":"hasField","target":"subject","key":"slow"}
+                ]
+              }
+            },
+            "body": {
+              "amount": {"op":"targetField","target":"attacker","key":"fast"},
+              "reaches": {
+                "op": "or",
+                "terms": [
+                  {
+                    "op": "and",
+                    "terms": [
+                      {
+                        "op": "and",
+                        "terms": [
+                          {
+                            "op": "and",
+                            "terms": [
+                              {"op":"gte","a":{"op":"laneOf","target":"attacker"},"b":0},
+                              {
+                                "op": "or",
+                                "terms": [
+                                  {"op":"atDepth","target":"attacker","depth":"front"},
+                                  {"op":"atDepth","target":"attacker","depth":"back"}
+                                ]
+                              }
+                            ]
+                          },
+                          {
+                            "op": "and",
+                            "terms": [
+                              {"op":"gte","a":{"op":"laneOf","target":"target"},"b":0},
+                              {
+                                "op": "or",
+                                "terms": [
+                                  {"op":"atDepth","target":"target","depth":"front"},
+                                  {"op":"atDepth","target":"target","depth":"back"}
+                                ]
+                              }
+                            ]
+                          }
+                        ]
+                      },
+                      {
+                        "op": "and",
+                        "terms": [
+                          {
+                            "op": "not",
+                            "term": {
+                              "op": "and",
+                              "terms": [
+                                {"op":"atDepth","target":"target","depth":"back"},
+                                {
+                                  "op": "gte",
+                                  "a": {
+                                    "op": "count",
+                                    "filter": {
+                                      "controller": {"k":"controllerOf","target":"target"},
+                                      "where": {
+                                        "op": "and",
+                                        "terms": [
+                                          {
+                                            "op": "eq",
+                                            "a": {"op":"laneOf","target":"subject"},
+                                            "b": {"op":"laneOf","target":"target"}
+                                          },
+                                          {"op":"atDepth","target":"subject","depth":"front"}
+                                        ]
+                                      }
+                                    }
+                                  },
+                                  "b": 1
+                                },
+                                {
+                                  "op": "not",
+                                  "term": {"op":"hasKeyword","target":"attacker","keyword":"reach"}
+                                }
+                              ]
+                            }
+                          },
+                          {
+                            "op": "eq",
+                            "a": {"op":"laneOf","target":"attacker"},
+                            "b": {"op":"laneOf","target":"target"}
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "op": "and",
+                    "terms": [
+                      {
+                        "op": "not",
+                        "term": {
+                          "op": "and",
+                          "terms": [
+                            {
+                              "op": "and",
+                              "terms": [
+                                {"op":"gte","a":{"op":"laneOf","target":"attacker"},"b":0},
+                                {
+                                  "op": "or",
+                                  "terms": [
+                                    {"op":"atDepth","target":"attacker","depth":"front"},
+                                    {"op":"atDepth","target":"attacker","depth":"back"}
+                                  ]
+                                }
+                              ]
+                            },
+                            {
+                              "op": "and",
+                              "terms": [
+                                {"op":"gte","a":{"op":"laneOf","target":"target"},"b":0},
+                                {
+                                  "op": "or",
+                                  "terms": [
+                                    {"op":"atDepth","target":"target","depth":"front"},
+                                    {"op":"atDepth","target":"target","depth":"back"}
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "op": "or",
+                        "terms": [
+                          {"op":"hasKeyword","target":"attacker","keyword":"reach"},
+                          {"op":"zoneOwner","target":"attacker"},
+                          {"op":"zoneOwner","target":"target"},
+                          {
+                            "op": "gte",
+                            "a": {
+                              "op": "count",
+                              "filter": {
+                                "only": "target",
+                                "zone": {"scope":"sameDef","of":"attacker"}
+                              }
+                            },
+                            "b": 1
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              },
+              "reachesFace": {
+                "op": "or",
+                "terms": [
+                  {
+                    "op": "and",
+                    "terms": [
+                      {
+                        "op": "and",
+                        "terms": [
+                          {"op":"gte","a":{"op":"laneOf","target":"attacker"},"b":0},
+                          {
+                            "op": "or",
+                            "terms": [
+                              {"op":"atDepth","target":"attacker","depth":"front"},
+                              {"op":"atDepth","target":"attacker","depth":"back"}
+                            ]
+                          }
+                        ]
+                      },
+                      {
+                        "op": "and",
+                        "terms": [
+                          {"op":"gte","a":{"op":"laneOf","target":"attacker"},"b":0},
+                          {
+                            "op": "not",
+                            "term": {
+                              "op": "gte",
+                              "a": {
+                                "op": "count",
+                                "filter": {
+                                  "controller": {"k":"defending"},
+                                  "where": {
+                                    "op": "and",
+                                    "terms": [
+                                      {
+                                        "op": "eq",
+                                        "a": {"op":"laneOf","target":"subject"},
+                                        "b": {"op":"laneOf","target":"attacker"}
+                                      },
+                                      {
+                                        "op": "and",
+                                        "terms": [
+                                          {"op":"gte","a":{"op":"laneOf","target":"subject"},"b":0},
+                                          {
+                                            "op": "or",
+                                            "terms": [
+                                              {"op":"atDepth","target":"subject","depth":"front"},
+                                              {"op":"atDepth","target":"subject","depth":"back"}
+                                            ]
+                                          }
+                                        ]
+                                      }
+                                    ]
+                                  }
+                                }
+                              },
+                              "b": 1
+                            }
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "op": "and",
+                    "terms": [
+                      {
+                        "op": "not",
+                        "term": {
+                          "op": "and",
+                          "terms": [
+                            {"op":"gte","a":{"op":"laneOf","target":"attacker"},"b":0},
+                            {
+                              "op": "or",
+                              "terms": [
+                                {"op":"atDepth","target":"attacker","depth":"front"},
+                                {"op":"atDepth","target":"attacker","depth":"back"}
+                              ]
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "op": "not",
+                        "term": {
+                          "op": "and",
+                          "terms": [
+                            {"op":"not","term":{"op":"zoneOwner","target":"attacker"}},
+                            {
+                              "op": "gte",
+                              "a": {
+                                "op": "count",
+                                "filter": {
+                                  "where": {
+                                    "op": "zoneOwner",
+                                    "target": "subject",
+                                    "who": {"k":"defending"}
+                                  },
+                                  "zone": {"scope":"sameDef","of":"attacker"}
+                                }
+                              },
+                              "b": 1
+                            }
+                          ]
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            "lethal": {"where":{"op":"hasKeyword","target":"subject","keyword":"deathtouch"}},
+            "window": true
+          },
+          {
+            "op": "freeAttacks",
+            "step": "slow",
+            "actors": {
+              "where": {
+                "op": "or",
+                "terms": [
+                  {"op":"hasField","target":"subject","key":"fast"},
+                  {"op":"hasField","target":"subject","key":"slow"}
+                ]
+              }
+            },
+            "body": {
+              "amount": {"op":"targetField","target":"attacker","key":"slow"},
+              "reaches": {
+                "op": "or",
+                "terms": [
+                  {
+                    "op": "and",
+                    "terms": [
+                      {
+                        "op": "and",
+                        "terms": [
+                          {
+                            "op": "and",
+                            "terms": [
+                              {"op":"gte","a":{"op":"laneOf","target":"attacker"},"b":0},
+                              {
+                                "op": "or",
+                                "terms": [
+                                  {"op":"atDepth","target":"attacker","depth":"front"},
+                                  {"op":"atDepth","target":"attacker","depth":"back"}
+                                ]
+                              }
+                            ]
+                          },
+                          {
+                            "op": "and",
+                            "terms": [
+                              {"op":"gte","a":{"op":"laneOf","target":"target"},"b":0},
+                              {
+                                "op": "or",
+                                "terms": [
+                                  {"op":"atDepth","target":"target","depth":"front"},
+                                  {"op":"atDepth","target":"target","depth":"back"}
+                                ]
+                              }
+                            ]
+                          }
+                        ]
+                      },
+                      {
+                        "op": "and",
+                        "terms": [
+                          {
+                            "op": "not",
+                            "term": {
+                              "op": "and",
+                              "terms": [
+                                {"op":"atDepth","target":"target","depth":"back"},
+                                {
+                                  "op": "gte",
+                                  "a": {
+                                    "op": "count",
+                                    "filter": {
+                                      "controller": {"k":"controllerOf","target":"target"},
+                                      "where": {
+                                        "op": "and",
+                                        "terms": [
+                                          {
+                                            "op": "eq",
+                                            "a": {"op":"laneOf","target":"subject"},
+                                            "b": {"op":"laneOf","target":"target"}
+                                          },
+                                          {"op":"atDepth","target":"subject","depth":"front"}
+                                        ]
+                                      }
+                                    }
+                                  },
+                                  "b": 1
+                                },
+                                {
+                                  "op": "not",
+                                  "term": {"op":"hasKeyword","target":"attacker","keyword":"reach"}
+                                }
+                              ]
+                            }
+                          },
+                          {
+                            "op": "eq",
+                            "a": {"op":"laneOf","target":"attacker"},
+                            "b": {"op":"laneOf","target":"target"}
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "op": "and",
+                    "terms": [
+                      {
+                        "op": "not",
+                        "term": {
+                          "op": "and",
+                          "terms": [
+                            {
+                              "op": "and",
+                              "terms": [
+                                {"op":"gte","a":{"op":"laneOf","target":"attacker"},"b":0},
+                                {
+                                  "op": "or",
+                                  "terms": [
+                                    {"op":"atDepth","target":"attacker","depth":"front"},
+                                    {"op":"atDepth","target":"attacker","depth":"back"}
+                                  ]
+                                }
+                              ]
+                            },
+                            {
+                              "op": "and",
+                              "terms": [
+                                {"op":"gte","a":{"op":"laneOf","target":"target"},"b":0},
+                                {
+                                  "op": "or",
+                                  "terms": [
+                                    {"op":"atDepth","target":"target","depth":"front"},
+                                    {"op":"atDepth","target":"target","depth":"back"}
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "op": "or",
+                        "terms": [
+                          {"op":"hasKeyword","target":"attacker","keyword":"reach"},
+                          {"op":"zoneOwner","target":"attacker"},
+                          {"op":"zoneOwner","target":"target"},
+                          {
+                            "op": "gte",
+                            "a": {
+                              "op": "count",
+                              "filter": {
+                                "only": "target",
+                                "zone": {"scope":"sameDef","of":"attacker"}
+                              }
+                            },
+                            "b": 1
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              },
+              "reachesFace": {
+                "op": "or",
+                "terms": [
+                  {
+                    "op": "and",
+                    "terms": [
+                      {
+                        "op": "and",
+                        "terms": [
+                          {"op":"gte","a":{"op":"laneOf","target":"attacker"},"b":0},
+                          {
+                            "op": "or",
+                            "terms": [
+                              {"op":"atDepth","target":"attacker","depth":"front"},
+                              {"op":"atDepth","target":"attacker","depth":"back"}
+                            ]
+                          }
+                        ]
+                      },
+                      {
+                        "op": "and",
+                        "terms": [
+                          {"op":"gte","a":{"op":"laneOf","target":"attacker"},"b":0},
+                          {
+                            "op": "not",
+                            "term": {
+                              "op": "gte",
+                              "a": {
+                                "op": "count",
+                                "filter": {
+                                  "controller": {"k":"defending"},
+                                  "where": {
+                                    "op": "and",
+                                    "terms": [
+                                      {
+                                        "op": "eq",
+                                        "a": {"op":"laneOf","target":"subject"},
+                                        "b": {"op":"laneOf","target":"attacker"}
+                                      },
+                                      {
+                                        "op": "and",
+                                        "terms": [
+                                          {"op":"gte","a":{"op":"laneOf","target":"subject"},"b":0},
+                                          {
+                                            "op": "or",
+                                            "terms": [
+                                              {"op":"atDepth","target":"subject","depth":"front"},
+                                              {"op":"atDepth","target":"subject","depth":"back"}
+                                            ]
+                                          }
+                                        ]
+                                      }
+                                    ]
+                                  }
+                                }
+                              },
+                              "b": 1
+                            }
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "op": "and",
+                    "terms": [
+                      {
+                        "op": "not",
+                        "term": {
+                          "op": "and",
+                          "terms": [
+                            {"op":"gte","a":{"op":"laneOf","target":"attacker"},"b":0},
+                            {
+                              "op": "or",
+                              "terms": [
+                                {"op":"atDepth","target":"attacker","depth":"front"},
+                                {"op":"atDepth","target":"attacker","depth":"back"}
+                              ]
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "op": "not",
+                        "term": {
+                          "op": "and",
+                          "terms": [
+                            {"op":"not","term":{"op":"zoneOwner","target":"attacker"}},
+                            {
+                              "op": "gte",
+                              "a": {
+                                "op": "count",
+                                "filter": {
+                                  "where": {
+                                    "op": "zoneOwner",
+                                    "target": "subject",
+                                    "who": {"k":"defending"}
+                                  },
+                                  "zone": {"scope":"sameDef","of":"attacker"}
+                                }
+                              },
+                              "b": 1
+                            }
+                          ]
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            "lethal": {"where":{"op":"hasKeyword","target":"subject","keyword":"deathtouch"}},
+            "window": true
+          }
+        ]
+      }
+    },
+    "fastSlowLanesCore": {
+      "program": {
+        "op": "sequence",
+        "steps": [
+          {
+            "op": "freeAttacks",
+            "step": "fast",
+            "actors": {
+              "where": {
+                "op": "and",
+                "terms": [
+                  {
+                    "op": "or",
+                    "terms": [
+                      {"op":"hasField","target":"subject","key":"fast"},
+                      {"op":"hasField","target":"subject","key":"slow"}
+                    ]
+                  },
+                  {"op":"not","term":{"op":"isExhausted","target":"subject"}}
+                ]
+              }
+            },
+            "body": {
+              "amount": {"op":"targetField","target":"attacker","key":"fast"},
+              "reaches": {
+                "op": "or",
+                "terms": [
+                  {
+                    "op": "and",
+                    "terms": [
+                      {
+                        "op": "and",
+                        "terms": [
+                          {
+                            "op": "and",
+                            "terms": [
+                              {"op":"gte","a":{"op":"laneOf","target":"attacker"},"b":0},
+                              {
+                                "op": "or",
+                                "terms": [
+                                  {"op":"atDepth","target":"attacker","depth":"front"},
+                                  {"op":"atDepth","target":"attacker","depth":"back"}
+                                ]
+                              }
+                            ]
+                          },
+                          {
+                            "op": "and",
+                            "terms": [
+                              {"op":"gte","a":{"op":"laneOf","target":"target"},"b":0},
+                              {
+                                "op": "or",
+                                "terms": [
+                                  {"op":"atDepth","target":"target","depth":"front"},
+                                  {"op":"atDepth","target":"target","depth":"back"}
+                                ]
+                              }
+                            ]
+                          }
+                        ]
+                      },
+                      {
+                        "op": "and",
+                        "terms": [
+                          {
+                            "op": "not",
+                            "term": {
+                              "op": "and",
+                              "terms": [
+                                {"op":"atDepth","target":"target","depth":"back"},
+                                {
+                                  "op": "gte",
+                                  "a": {
+                                    "op": "count",
+                                    "filter": {
+                                      "controller": {"k":"controllerOf","target":"target"},
+                                      "where": {
+                                        "op": "and",
+                                        "terms": [
+                                          {
+                                            "op": "eq",
+                                            "a": {"op":"laneOf","target":"subject"},
+                                            "b": {"op":"laneOf","target":"target"}
+                                          },
+                                          {"op":"atDepth","target":"subject","depth":"front"}
+                                        ]
+                                      }
+                                    }
+                                  },
+                                  "b": 1
+                                },
+                                {
+                                  "op": "not",
+                                  "term": {"op":"hasKeyword","target":"attacker","keyword":"reach"}
+                                }
+                              ]
+                            }
+                          },
+                          {
+                            "op": "eq",
+                            "a": {"op":"laneOf","target":"attacker"},
+                            "b": {"op":"laneOf","target":"target"}
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "op": "and",
+                    "terms": [
+                      {
+                        "op": "not",
+                        "term": {
+                          "op": "and",
+                          "terms": [
+                            {
+                              "op": "and",
+                              "terms": [
+                                {"op":"gte","a":{"op":"laneOf","target":"attacker"},"b":0},
+                                {
+                                  "op": "or",
+                                  "terms": [
+                                    {"op":"atDepth","target":"attacker","depth":"front"},
+                                    {"op":"atDepth","target":"attacker","depth":"back"}
+                                  ]
+                                }
+                              ]
+                            },
+                            {
+                              "op": "and",
+                              "terms": [
+                                {"op":"gte","a":{"op":"laneOf","target":"target"},"b":0},
+                                {
+                                  "op": "or",
+                                  "terms": [
+                                    {"op":"atDepth","target":"target","depth":"front"},
+                                    {"op":"atDepth","target":"target","depth":"back"}
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "op": "or",
+                        "terms": [
+                          {"op":"hasKeyword","target":"attacker","keyword":"reach"},
+                          {"op":"zoneOwner","target":"attacker"},
+                          {"op":"zoneOwner","target":"target"},
+                          {
+                            "op": "gte",
+                            "a": {
+                              "op": "count",
+                              "filter": {
+                                "only": "target",
+                                "zone": {"scope":"sameDef","of":"attacker"}
+                              }
+                            },
+                            "b": 1
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              },
+              "reachesFace": {
+                "op": "or",
+                "terms": [
+                  {
+                    "op": "and",
+                    "terms": [
+                      {
+                        "op": "and",
+                        "terms": [
+                          {"op":"gte","a":{"op":"laneOf","target":"attacker"},"b":0},
+                          {
+                            "op": "or",
+                            "terms": [
+                              {"op":"atDepth","target":"attacker","depth":"front"},
+                              {"op":"atDepth","target":"attacker","depth":"back"}
+                            ]
+                          }
+                        ]
+                      },
+                      {
+                        "op": "and",
+                        "terms": [
+                          {"op":"gte","a":{"op":"laneOf","target":"attacker"},"b":0},
+                          {
+                            "op": "not",
+                            "term": {
+                              "op": "gte",
+                              "a": {
+                                "op": "count",
+                                "filter": {
+                                  "controller": {"k":"defending"},
+                                  "where": {
+                                    "op": "and",
+                                    "terms": [
+                                      {
+                                        "op": "eq",
+                                        "a": {"op":"laneOf","target":"subject"},
+                                        "b": {"op":"laneOf","target":"attacker"}
+                                      },
+                                      {
+                                        "op": "and",
+                                        "terms": [
+                                          {"op":"gte","a":{"op":"laneOf","target":"subject"},"b":0},
+                                          {
+                                            "op": "or",
+                                            "terms": [
+                                              {"op":"atDepth","target":"subject","depth":"front"},
+                                              {"op":"atDepth","target":"subject","depth":"back"}
+                                            ]
+                                          }
+                                        ]
+                                      }
+                                    ]
+                                  }
+                                }
+                              },
+                              "b": 1
+                            }
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "op": "and",
+                    "terms": [
+                      {
+                        "op": "not",
+                        "term": {
+                          "op": "and",
+                          "terms": [
+                            {"op":"gte","a":{"op":"laneOf","target":"attacker"},"b":0},
+                            {
+                              "op": "or",
+                              "terms": [
+                                {"op":"atDepth","target":"attacker","depth":"front"},
+                                {"op":"atDepth","target":"attacker","depth":"back"}
+                              ]
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "op": "not",
+                        "term": {
+                          "op": "and",
+                          "terms": [
+                            {"op":"not","term":{"op":"zoneOwner","target":"attacker"}},
+                            {
+                              "op": "gte",
+                              "a": {
+                                "op": "count",
+                                "filter": {
+                                  "where": {
+                                    "op": "zoneOwner",
+                                    "target": "subject",
+                                    "who": {"k":"defending"}
+                                  },
+                                  "zone": {"scope":"sameDef","of":"attacker"}
+                                }
+                              },
+                              "b": 1
+                            }
+                          ]
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            "lethal": {"where":{"op":"hasKeyword","target":"subject","keyword":"deathtouch"}},
+            "window": true
+          },
+          {
+            "op": "freeAttacks",
+            "step": "slow",
+            "actors": {
+              "where": {
+                "op": "and",
+                "terms": [
+                  {
+                    "op": "or",
+                    "terms": [
+                      {"op":"hasField","target":"subject","key":"fast"},
+                      {"op":"hasField","target":"subject","key":"slow"}
+                    ]
+                  },
+                  {"op":"not","term":{"op":"isExhausted","target":"subject"}}
+                ]
+              }
+            },
+            "body": {
+              "amount": {"op":"targetField","target":"attacker","key":"slow"},
+              "reaches": {
+                "op": "or",
+                "terms": [
+                  {
+                    "op": "and",
+                    "terms": [
+                      {
+                        "op": "and",
+                        "terms": [
+                          {
+                            "op": "and",
+                            "terms": [
+                              {"op":"gte","a":{"op":"laneOf","target":"attacker"},"b":0},
+                              {
+                                "op": "or",
+                                "terms": [
+                                  {"op":"atDepth","target":"attacker","depth":"front"},
+                                  {"op":"atDepth","target":"attacker","depth":"back"}
+                                ]
+                              }
+                            ]
+                          },
+                          {
+                            "op": "and",
+                            "terms": [
+                              {"op":"gte","a":{"op":"laneOf","target":"target"},"b":0},
+                              {
+                                "op": "or",
+                                "terms": [
+                                  {"op":"atDepth","target":"target","depth":"front"},
+                                  {"op":"atDepth","target":"target","depth":"back"}
+                                ]
+                              }
+                            ]
+                          }
+                        ]
+                      },
+                      {
+                        "op": "and",
+                        "terms": [
+                          {
+                            "op": "not",
+                            "term": {
+                              "op": "and",
+                              "terms": [
+                                {"op":"atDepth","target":"target","depth":"back"},
+                                {
+                                  "op": "gte",
+                                  "a": {
+                                    "op": "count",
+                                    "filter": {
+                                      "controller": {"k":"controllerOf","target":"target"},
+                                      "where": {
+                                        "op": "and",
+                                        "terms": [
+                                          {
+                                            "op": "eq",
+                                            "a": {"op":"laneOf","target":"subject"},
+                                            "b": {"op":"laneOf","target":"target"}
+                                          },
+                                          {"op":"atDepth","target":"subject","depth":"front"}
+                                        ]
+                                      }
+                                    }
+                                  },
+                                  "b": 1
+                                },
+                                {
+                                  "op": "not",
+                                  "term": {"op":"hasKeyword","target":"attacker","keyword":"reach"}
+                                }
+                              ]
+                            }
+                          },
+                          {
+                            "op": "eq",
+                            "a": {"op":"laneOf","target":"attacker"},
+                            "b": {"op":"laneOf","target":"target"}
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "op": "and",
+                    "terms": [
+                      {
+                        "op": "not",
+                        "term": {
+                          "op": "and",
+                          "terms": [
+                            {
+                              "op": "and",
+                              "terms": [
+                                {"op":"gte","a":{"op":"laneOf","target":"attacker"},"b":0},
+                                {
+                                  "op": "or",
+                                  "terms": [
+                                    {"op":"atDepth","target":"attacker","depth":"front"},
+                                    {"op":"atDepth","target":"attacker","depth":"back"}
+                                  ]
+                                }
+                              ]
+                            },
+                            {
+                              "op": "and",
+                              "terms": [
+                                {"op":"gte","a":{"op":"laneOf","target":"target"},"b":0},
+                                {
+                                  "op": "or",
+                                  "terms": [
+                                    {"op":"atDepth","target":"target","depth":"front"},
+                                    {"op":"atDepth","target":"target","depth":"back"}
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "op": "or",
+                        "terms": [
+                          {"op":"hasKeyword","target":"attacker","keyword":"reach"},
+                          {"op":"zoneOwner","target":"attacker"},
+                          {"op":"zoneOwner","target":"target"},
+                          {
+                            "op": "gte",
+                            "a": {
+                              "op": "count",
+                              "filter": {
+                                "only": "target",
+                                "zone": {"scope":"sameDef","of":"attacker"}
+                              }
+                            },
+                            "b": 1
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              },
+              "reachesFace": {
+                "op": "or",
+                "terms": [
+                  {
+                    "op": "and",
+                    "terms": [
+                      {
+                        "op": "and",
+                        "terms": [
+                          {"op":"gte","a":{"op":"laneOf","target":"attacker"},"b":0},
+                          {
+                            "op": "or",
+                            "terms": [
+                              {"op":"atDepth","target":"attacker","depth":"front"},
+                              {"op":"atDepth","target":"attacker","depth":"back"}
+                            ]
+                          }
+                        ]
+                      },
+                      {
+                        "op": "and",
+                        "terms": [
+                          {"op":"gte","a":{"op":"laneOf","target":"attacker"},"b":0},
+                          {
+                            "op": "not",
+                            "term": {
+                              "op": "gte",
+                              "a": {
+                                "op": "count",
+                                "filter": {
+                                  "controller": {"k":"defending"},
+                                  "where": {
+                                    "op": "and",
+                                    "terms": [
+                                      {
+                                        "op": "eq",
+                                        "a": {"op":"laneOf","target":"subject"},
+                                        "b": {"op":"laneOf","target":"attacker"}
+                                      },
+                                      {
+                                        "op": "and",
+                                        "terms": [
+                                          {"op":"gte","a":{"op":"laneOf","target":"subject"},"b":0},
+                                          {
+                                            "op": "or",
+                                            "terms": [
+                                              {"op":"atDepth","target":"subject","depth":"front"},
+                                              {"op":"atDepth","target":"subject","depth":"back"}
+                                            ]
+                                          }
+                                        ]
+                                      }
+                                    ]
+                                  }
+                                }
+                              },
+                              "b": 1
+                            }
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "op": "and",
+                    "terms": [
+                      {
+                        "op": "not",
+                        "term": {
+                          "op": "and",
+                          "terms": [
+                            {"op":"gte","a":{"op":"laneOf","target":"attacker"},"b":0},
+                            {
+                              "op": "or",
+                              "terms": [
+                                {"op":"atDepth","target":"attacker","depth":"front"},
+                                {"op":"atDepth","target":"attacker","depth":"back"}
+                              ]
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "op": "not",
+                        "term": {
+                          "op": "and",
+                          "terms": [
+                            {"op":"not","term":{"op":"zoneOwner","target":"attacker"}},
+                            {
+                              "op": "gte",
+                              "a": {
+                                "op": "count",
+                                "filter": {
+                                  "where": {
+                                    "op": "zoneOwner",
+                                    "target": "subject",
+                                    "who": {"k":"defending"}
+                                  },
+                                  "zone": {"scope":"sameDef","of":"attacker"}
+                                }
+                              },
+                              "b": 1
+                            }
+                          ]
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            "lethal": {"where":{"op":"hasKeyword","target":"subject","keyword":"deathtouch"}},
+            "window": true
+          }
+        ]
+      }
+    },
+    "singleStepLanesCore": {
+      "program": {
+        "op": "sequence",
+        "steps": [
+          {
+            "op": "freeAttacks",
+            "step": "strike",
+            "actors": {
+              "where": {
+                "op": "and",
+                "terms": [
+                  {"op":"hasField","target":"subject","key":"strike"},
+                  {"op":"not","term":{"op":"isExhausted","target":"subject"}}
+                ]
+              }
+            },
+            "body": {
+              "amount": {"op":"targetField","target":"attacker","key":"strike"},
+              "reaches": {
+                "op": "or",
+                "terms": [
+                  {
+                    "op": "and",
+                    "terms": [
+                      {
+                        "op": "and",
+                        "terms": [
+                          {
+                            "op": "and",
+                            "terms": [
+                              {"op":"gte","a":{"op":"laneOf","target":"attacker"},"b":0},
+                              {
+                                "op": "or",
+                                "terms": [
+                                  {"op":"atDepth","target":"attacker","depth":"front"},
+                                  {"op":"atDepth","target":"attacker","depth":"back"}
+                                ]
+                              }
+                            ]
+                          },
+                          {
+                            "op": "and",
+                            "terms": [
+                              {"op":"gte","a":{"op":"laneOf","target":"target"},"b":0},
+                              {
+                                "op": "or",
+                                "terms": [
+                                  {"op":"atDepth","target":"target","depth":"front"},
+                                  {"op":"atDepth","target":"target","depth":"back"}
+                                ]
+                              }
+                            ]
+                          }
+                        ]
+                      },
+                      {
+                        "op": "and",
+                        "terms": [
+                          {
+                            "op": "not",
+                            "term": {
+                              "op": "and",
+                              "terms": [
+                                {"op":"atDepth","target":"target","depth":"back"},
+                                {
+                                  "op": "gte",
+                                  "a": {
+                                    "op": "count",
+                                    "filter": {
+                                      "controller": {"k":"controllerOf","target":"target"},
+                                      "where": {
+                                        "op": "and",
+                                        "terms": [
+                                          {
+                                            "op": "eq",
+                                            "a": {"op":"laneOf","target":"subject"},
+                                            "b": {"op":"laneOf","target":"target"}
+                                          },
+                                          {"op":"atDepth","target":"subject","depth":"front"}
+                                        ]
+                                      }
+                                    }
+                                  },
+                                  "b": 1
+                                },
+                                {
+                                  "op": "not",
+                                  "term": {"op":"hasKeyword","target":"attacker","keyword":"reach"}
+                                }
+                              ]
+                            }
+                          },
+                          {
+                            "op": "eq",
+                            "a": {"op":"laneOf","target":"attacker"},
+                            "b": {"op":"laneOf","target":"target"}
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "op": "and",
+                    "terms": [
+                      {
+                        "op": "not",
+                        "term": {
+                          "op": "and",
+                          "terms": [
+                            {
+                              "op": "and",
+                              "terms": [
+                                {"op":"gte","a":{"op":"laneOf","target":"attacker"},"b":0},
+                                {
+                                  "op": "or",
+                                  "terms": [
+                                    {"op":"atDepth","target":"attacker","depth":"front"},
+                                    {"op":"atDepth","target":"attacker","depth":"back"}
+                                  ]
+                                }
+                              ]
+                            },
+                            {
+                              "op": "and",
+                              "terms": [
+                                {"op":"gte","a":{"op":"laneOf","target":"target"},"b":0},
+                                {
+                                  "op": "or",
+                                  "terms": [
+                                    {"op":"atDepth","target":"target","depth":"front"},
+                                    {"op":"atDepth","target":"target","depth":"back"}
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "op": "or",
+                        "terms": [
+                          {"op":"hasKeyword","target":"attacker","keyword":"reach"},
+                          {"op":"zoneOwner","target":"attacker"},
+                          {"op":"zoneOwner","target":"target"},
+                          {
+                            "op": "gte",
+                            "a": {
+                              "op": "count",
+                              "filter": {
+                                "only": "target",
+                                "zone": {"scope":"sameDef","of":"attacker"}
+                              }
+                            },
+                            "b": 1
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              },
+              "reachesFace": {
+                "op": "or",
+                "terms": [
+                  {
+                    "op": "and",
+                    "terms": [
+                      {
+                        "op": "and",
+                        "terms": [
+                          {"op":"gte","a":{"op":"laneOf","target":"attacker"},"b":0},
+                          {
+                            "op": "or",
+                            "terms": [
+                              {"op":"atDepth","target":"attacker","depth":"front"},
+                              {"op":"atDepth","target":"attacker","depth":"back"}
+                            ]
+                          }
+                        ]
+                      },
+                      {
+                        "op": "and",
+                        "terms": [
+                          {"op":"gte","a":{"op":"laneOf","target":"attacker"},"b":0},
+                          {
+                            "op": "not",
+                            "term": {
+                              "op": "gte",
+                              "a": {
+                                "op": "count",
+                                "filter": {
+                                  "controller": {"k":"defending"},
+                                  "where": {
+                                    "op": "and",
+                                    "terms": [
+                                      {
+                                        "op": "eq",
+                                        "a": {"op":"laneOf","target":"subject"},
+                                        "b": {"op":"laneOf","target":"attacker"}
+                                      },
+                                      {
+                                        "op": "and",
+                                        "terms": [
+                                          {"op":"gte","a":{"op":"laneOf","target":"subject"},"b":0},
+                                          {
+                                            "op": "or",
+                                            "terms": [
+                                              {"op":"atDepth","target":"subject","depth":"front"},
+                                              {"op":"atDepth","target":"subject","depth":"back"}
+                                            ]
+                                          }
+                                        ]
+                                      }
+                                    ]
+                                  }
+                                }
+                              },
+                              "b": 1
+                            }
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "op": "and",
+                    "terms": [
+                      {
+                        "op": "not",
+                        "term": {
+                          "op": "and",
+                          "terms": [
+                            {"op":"gte","a":{"op":"laneOf","target":"attacker"},"b":0},
+                            {
+                              "op": "or",
+                              "terms": [
+                                {"op":"atDepth","target":"attacker","depth":"front"},
+                                {"op":"atDepth","target":"attacker","depth":"back"}
+                              ]
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "op": "not",
+                        "term": {
+                          "op": "and",
+                          "terms": [
+                            {"op":"not","term":{"op":"zoneOwner","target":"attacker"}},
+                            {
+                              "op": "gte",
+                              "a": {
+                                "op": "count",
+                                "filter": {
+                                  "where": {
+                                    "op": "zoneOwner",
+                                    "target": "subject",
+                                    "who": {"k":"defending"}
+                                  },
+                                  "zone": {"scope":"sameDef","of":"attacker"}
+                                }
+                              },
+                              "b": 1
+                            }
+                          ]
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            "lethal": {"where":{"op":"hasKeyword","target":"subject","keyword":"deathtouch"}},
+            "window": true
+          }
+        ]
+      }
+    },
+    "screenedSingleStep": {
+      "program": {
+        "op": "sequence",
+        "steps": [
+          {
+            "op": "freeAttacks",
+            "step": "strike",
+            "actors": {
+              "where": {
+                "op": "and",
+                "terms": [
+                  {"op":"hasField","target":"subject","key":"strike"},
+                  {"op":"not","term":{"op":"isExhausted","target":"subject"}}
+                ]
+              }
+            },
+            "body": {
+              "amount": {"op":"targetField","target":"attacker","key":"strike"},
+              "reaches": {
+                "op": "or",
+                "terms": [
+                  {
+                    "op": "and",
+                    "terms": [
+                      {
+                        "op": "and",
+                        "terms": [
+                          {
+                            "op": "and",
+                            "terms": [
+                              {"op":"gte","a":{"op":"laneOf","target":"attacker"},"b":0},
+                              {
+                                "op": "or",
+                                "terms": [
+                                  {"op":"atDepth","target":"attacker","depth":"front"},
+                                  {"op":"atDepth","target":"attacker","depth":"back"}
+                                ]
+                              }
+                            ]
+                          },
+                          {
+                            "op": "and",
+                            "terms": [
+                              {"op":"gte","a":{"op":"laneOf","target":"target"},"b":0},
+                              {
+                                "op": "or",
+                                "terms": [
+                                  {"op":"atDepth","target":"target","depth":"front"},
+                                  {"op":"atDepth","target":"target","depth":"back"}
+                                ]
+                              }
+                            ]
+                          }
+                        ]
+                      },
+                      {
+                        "op": "and",
+                        "terms": [
+                          {
+                            "op": "not",
+                            "term": {
+                              "op": "and",
+                              "terms": [
+                                {"op":"atDepth","target":"target","depth":"back"},
+                                {
+                                  "op": "gte",
+                                  "a": {
+                                    "op": "count",
+                                    "filter": {
+                                      "controller": {"k":"controllerOf","target":"target"},
+                                      "where": {
+                                        "op": "and",
+                                        "terms": [
+                                          {
+                                            "op": "eq",
+                                            "a": {"op":"laneOf","target":"subject"},
+                                            "b": {"op":"laneOf","target":"target"}
+                                          },
+                                          {"op":"atDepth","target":"subject","depth":"front"}
+                                        ]
+                                      }
+                                    }
+                                  },
+                                  "b": 1
+                                },
+                                {
+                                  "op": "not",
+                                  "term": {"op":"hasKeyword","target":"attacker","keyword":"reach"}
+                                }
+                              ]
+                            }
+                          },
+                          {
+                            "op": "eq",
+                            "a": {"op":"laneOf","target":"attacker"},
+                            "b": {"op":"laneOf","target":"target"}
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "op": "and",
+                    "terms": [
+                      {
+                        "op": "not",
+                        "term": {
+                          "op": "and",
+                          "terms": [
+                            {
+                              "op": "and",
+                              "terms": [
+                                {"op":"gte","a":{"op":"laneOf","target":"attacker"},"b":0},
+                                {
+                                  "op": "or",
+                                  "terms": [
+                                    {"op":"atDepth","target":"attacker","depth":"front"},
+                                    {"op":"atDepth","target":"attacker","depth":"back"}
+                                  ]
+                                }
+                              ]
+                            },
+                            {
+                              "op": "and",
+                              "terms": [
+                                {"op":"gte","a":{"op":"laneOf","target":"target"},"b":0},
+                                {
+                                  "op": "or",
+                                  "terms": [
+                                    {"op":"atDepth","target":"target","depth":"front"},
+                                    {"op":"atDepth","target":"target","depth":"back"}
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "op": "and",
+                        "terms": [
+                          {
+                            "op": "not",
+                            "term": {
+                              "op": "and",
+                              "terms": [
+                                {
+                                  "op": "gte",
+                                  "a": {
+                                    "op": "count",
+                                    "filter": {
+                                      "only": "target",
+                                      "zone": {"scope":"named","def":"back"}
+                                    }
+                                  },
+                                  "b": 1
+                                },
+                                {
+                                  "op": "gte",
+                                  "a": {
+                                    "op": "count",
+                                    "filter": {
+                                      "controller": {"k":"controllerOf","target":"target"},
+                                      "zone": {"scope":"named","def":"front"}
+                                    }
+                                  },
+                                  "b": 1
+                                }
+                              ]
+                            }
+                          },
+                          {
+                            "op": "or",
+                            "terms": [
+                              {"op":"hasKeyword","target":"attacker","keyword":"reach"},
+                              {"op":"zoneOwner","target":"attacker"},
+                              {"op":"zoneOwner","target":"target"},
+                              {
+                                "op": "gte",
+                                "a": {
+                                  "op": "count",
+                                  "filter": {
+                                    "only": "target",
+                                    "zone": {"scope":"sameDef","of":"attacker"}
+                                  }
+                                },
+                                "b": 1
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              },
+              "reachesFace": {
+                "op": "or",
+                "terms": [
+                  {
+                    "op": "and",
+                    "terms": [
+                      {
+                        "op": "and",
+                        "terms": [
+                          {"op":"gte","a":{"op":"laneOf","target":"attacker"},"b":0},
+                          {
+                            "op": "or",
+                            "terms": [
+                              {"op":"atDepth","target":"attacker","depth":"front"},
+                              {"op":"atDepth","target":"attacker","depth":"back"}
+                            ]
+                          }
+                        ]
+                      },
+                      {
+                        "op": "and",
+                        "terms": [
+                          {"op":"gte","a":{"op":"laneOf","target":"attacker"},"b":0},
+                          {
+                            "op": "not",
+                            "term": {
+                              "op": "gte",
+                              "a": {
+                                "op": "count",
+                                "filter": {
+                                  "controller": {"k":"defending"},
+                                  "where": {
+                                    "op": "and",
+                                    "terms": [
+                                      {
+                                        "op": "eq",
+                                        "a": {"op":"laneOf","target":"subject"},
+                                        "b": {"op":"laneOf","target":"attacker"}
+                                      },
+                                      {
+                                        "op": "and",
+                                        "terms": [
+                                          {"op":"gte","a":{"op":"laneOf","target":"subject"},"b":0},
+                                          {
+                                            "op": "or",
+                                            "terms": [
+                                              {"op":"atDepth","target":"subject","depth":"front"},
+                                              {"op":"atDepth","target":"subject","depth":"back"}
+                                            ]
+                                          }
+                                        ]
+                                      }
+                                    ]
+                                  }
+                                }
+                              },
+                              "b": 1
+                            }
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "op": "and",
+                    "terms": [
+                      {
+                        "op": "not",
+                        "term": {
+                          "op": "and",
+                          "terms": [
+                            {"op":"gte","a":{"op":"laneOf","target":"attacker"},"b":0},
+                            {
+                              "op": "or",
+                              "terms": [
+                                {"op":"atDepth","target":"attacker","depth":"front"},
+                                {"op":"atDepth","target":"attacker","depth":"back"}
+                              ]
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "op": "not",
+                        "term": {
+                          "op": "and",
+                          "terms": [
+                            {"op":"not","term":{"op":"zoneOwner","target":"attacker"}},
+                            {
+                              "op": "gte",
+                              "a": {
+                                "op": "count",
+                                "filter": {
+                                  "where": {
+                                    "op": "zoneOwner",
+                                    "target": "subject",
+                                    "who": {"k":"defending"}
+                                  },
+                                  "zone": {"scope":"sameDef","of":"attacker"}
+                                }
+                              },
+                              "b": 1
+                            }
+                          ]
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            "lethal": {"where":{"op":"hasKeyword","target":"subject","keyword":"deathtouch"}},
+            "window": true
+          }
+        ]
+      }
+    },
+    "frontBack": {
+      "program": {
+        "op": "sequence",
+        "steps": [
+          {
+            "op": "freeAttacks",
+            "step": "strike",
+            "actors": {
+              "where": {
+                "op": "and",
+                "terms": [
+                  {"op":"hasField","target":"subject","key":"strike"},
+                  {"op":"not","term":{"op":"isExhausted","target":"subject"}}
+                ]
+              }
+            },
+            "body": {
+              "amount": {"op":"targetField","target":"attacker","key":"strike"},
+              "reaches": {
+                "op": "or",
+                "terms": [
+                  {
+                    "op": "and",
+                    "terms": [
+                      {
+                        "op": "and",
+                        "terms": [
+                          {
+                            "op": "and",
+                            "terms": [
+                              {"op":"gte","a":{"op":"laneOf","target":"attacker"},"b":0},
+                              {
+                                "op": "or",
+                                "terms": [
+                                  {"op":"atDepth","target":"attacker","depth":"front"},
+                                  {"op":"atDepth","target":"attacker","depth":"back"}
+                                ]
+                              }
+                            ]
+                          },
+                          {
+                            "op": "and",
+                            "terms": [
+                              {"op":"gte","a":{"op":"laneOf","target":"target"},"b":0},
+                              {
+                                "op": "or",
+                                "terms": [
+                                  {"op":"atDepth","target":"target","depth":"front"},
+                                  {"op":"atDepth","target":"target","depth":"back"}
+                                ]
+                              }
+                            ]
+                          }
+                        ]
+                      },
+                      {
+                        "op": "and",
+                        "terms": [
+                          {
+                            "op": "not",
+                            "term": {
+                              "op": "and",
+                              "terms": [
+                                {"op":"atDepth","target":"target","depth":"back"},
+                                {
+                                  "op": "gte",
+                                  "a": {
+                                    "op": "count",
+                                    "filter": {
+                                      "controller": {"k":"controllerOf","target":"target"},
+                                      "where": {
+                                        "op": "and",
+                                        "terms": [
+                                          {
+                                            "op": "eq",
+                                            "a": {"op":"laneOf","target":"subject"},
+                                            "b": {"op":"laneOf","target":"target"}
+                                          },
+                                          {"op":"atDepth","target":"subject","depth":"front"}
+                                        ]
+                                      }
+                                    }
+                                  },
+                                  "b": 1
+                                },
+                                {
+                                  "op": "not",
+                                  "term": {"op":"hasKeyword","target":"attacker","keyword":"reach"}
+                                }
+                              ]
+                            }
+                          },
+                          {
+                            "op": "eq",
+                            "a": {"op":"laneOf","target":"attacker"},
+                            "b": {"op":"laneOf","target":"target"}
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "op": "and",
+                    "terms": [
+                      {
+                        "op": "not",
+                        "term": {
+                          "op": "and",
+                          "terms": [
+                            {
+                              "op": "and",
+                              "terms": [
+                                {"op":"gte","a":{"op":"laneOf","target":"attacker"},"b":0},
+                                {
+                                  "op": "or",
+                                  "terms": [
+                                    {"op":"atDepth","target":"attacker","depth":"front"},
+                                    {"op":"atDepth","target":"attacker","depth":"back"}
+                                  ]
+                                }
+                              ]
+                            },
+                            {
+                              "op": "and",
+                              "terms": [
+                                {"op":"gte","a":{"op":"laneOf","target":"target"},"b":0},
+                                {
+                                  "op": "or",
+                                  "terms": [
+                                    {"op":"atDepth","target":"target","depth":"front"},
+                                    {"op":"atDepth","target":"target","depth":"back"}
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "op": "and",
+                        "terms": [
+                          {
+                            "op": "not",
+                            "term": {
+                              "op": "and",
+                              "terms": [
+                                {
+                                  "op": "gte",
+                                  "a": {
+                                    "op": "count",
+                                    "filter": {
+                                      "only": "target",
+                                      "zone": {"scope":"named","def":"back"}
+                                    }
+                                  },
+                                  "b": 1
+                                },
+                                {
+                                  "op": "gte",
+                                  "a": {
+                                    "op": "count",
+                                    "filter": {
+                                      "controller": {"k":"controllerOf","target":"target"},
+                                      "zone": {"scope":"named","def":"front"}
+                                    }
+                                  },
+                                  "b": 1
+                                }
+                              ]
+                            }
+                          },
+                          {
+                            "op": "or",
+                            "terms": [
+                              {"op":"hasKeyword","target":"attacker","keyword":"reach"},
+                              {"op":"zoneOwner","target":"attacker"},
+                              {"op":"zoneOwner","target":"target"},
+                              {
+                                "op": "gte",
+                                "a": {
+                                  "op": "count",
+                                  "filter": {
+                                    "only": "target",
+                                    "zone": {"scope":"sameDef","of":"attacker"}
+                                  }
+                                },
+                                "b": 1
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              },
+              "reachesFace": {
+                "op": "or",
+                "terms": [
+                  {
+                    "op": "and",
+                    "terms": [
+                      {
+                        "op": "and",
+                        "terms": [
+                          {"op":"gte","a":{"op":"laneOf","target":"attacker"},"b":0},
+                          {
+                            "op": "or",
+                            "terms": [
+                              {"op":"atDepth","target":"attacker","depth":"front"},
+                              {"op":"atDepth","target":"attacker","depth":"back"}
+                            ]
+                          }
+                        ]
+                      },
+                      {
+                        "op": "and",
+                        "terms": [
+                          {"op":"gte","a":{"op":"laneOf","target":"attacker"},"b":0},
+                          {
+                            "op": "not",
+                            "term": {
+                              "op": "gte",
+                              "a": {
+                                "op": "count",
+                                "filter": {
+                                  "controller": {"k":"defending"},
+                                  "where": {
+                                    "op": "and",
+                                    "terms": [
+                                      {
+                                        "op": "eq",
+                                        "a": {"op":"laneOf","target":"subject"},
+                                        "b": {"op":"laneOf","target":"attacker"}
+                                      },
+                                      {
+                                        "op": "and",
+                                        "terms": [
+                                          {"op":"gte","a":{"op":"laneOf","target":"subject"},"b":0},
+                                          {
+                                            "op": "or",
+                                            "terms": [
+                                              {"op":"atDepth","target":"subject","depth":"front"},
+                                              {"op":"atDepth","target":"subject","depth":"back"}
+                                            ]
+                                          }
+                                        ]
+                                      }
+                                    ]
+                                  }
+                                }
+                              },
+                              "b": 1
+                            }
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "op": "and",
+                    "terms": [
+                      {
+                        "op": "not",
+                        "term": {
+                          "op": "and",
+                          "terms": [
+                            {"op":"gte","a":{"op":"laneOf","target":"attacker"},"b":0},
+                            {
+                              "op": "or",
+                              "terms": [
+                                {"op":"atDepth","target":"attacker","depth":"front"},
+                                {"op":"atDepth","target":"attacker","depth":"back"}
+                              ]
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "op": "or",
+                        "terms": [
+                          {"op":"hasKeyword","target":"attacker","keyword":"reach"},
+                          {
+                            "op": "not",
+                            "term": {
+                              "op": "and",
+                              "terms": [
+                                {"op":"not","term":{"op":"zoneOwner","target":"attacker"}},
+                                {
+                                  "op": "gte",
+                                  "a": {
+                                    "op": "count",
+                                    "filter": {
+                                      "where": {
+                                        "op": "zoneOwner",
+                                        "target": "subject",
+                                        "who": {"k":"defending"}
+                                      },
+                                      "zone": {"scope":"sameDef","of":"attacker"}
+                                    }
+                                  },
+                                  "b": 1
+                                }
+                              ]
+                            }
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            "lethal": {"where":{"op":"hasKeyword","target":"subject","keyword":"deathtouch"}},
+            "window": true,
+            "overflow": true
+          }
+        ]
+      }
+    },
+    "frontBackCore": {
+      "program": {
+        "op": "sequence",
+        "steps": [
+          {
+            "op": "freeAttacks",
+            "step": "strike",
+            "actors": {
+              "where": {
+                "op": "and",
+                "terms": [
+                  {
+                    "op": "or",
+                    "terms": [
+                      {"op":"hasField","target":"subject","key":"sr"},
+                      {"op":"hasField","target":"subject","key":"lr"}
+                    ]
+                  },
+                  {"op":"not","term":{"op":"isExhausted","target":"subject"}}
+                ]
+              }
+            },
+            "body": {
+              "amount": {
+                "op": "cond",
+                "if": {"op":"zoneOwner","target":"attacker"},
+                "then": {"op":"targetField","target":"attacker","key":"sr"},
+                "else": {
+                  "op": "cond",
+                  "if": {"op":"zoneOwner","target":"target"},
+                  "then": {"op":"targetField","target":"attacker","key":"lr"},
+                  "else": {
+                    "op": "cond",
+                    "if": {
+                      "op": "gte",
+                      "a": {
+                        "op": "count",
+                        "filter": {"only":"target","zone":{"scope":"sameDef","of":"attacker"}}
+                      },
+                      "b": 1
+                    },
+                    "then": {"op":"targetField","target":"attacker","key":"sr"},
+                    "else": {"op":"targetField","target":"attacker","key":"lr"}
+                  }
+                }
+              },
+              "faceAmount": {
+                "op": "cond",
+                "if": {"op":"zoneOwner","target":"attacker"},
+                "then": {"op":"targetField","target":"attacker","key":"sr"},
+                "else": {"op":"targetField","target":"attacker","key":"lr"}
+              },
+              "reaches": {
+                "op": "or",
+                "terms": [
+                  {
+                    "op": "and",
+                    "terms": [
+                      {
+                        "op": "and",
+                        "terms": [
+                          {
+                            "op": "and",
+                            "terms": [
+                              {"op":"gte","a":{"op":"laneOf","target":"attacker"},"b":0},
+                              {
+                                "op": "or",
+                                "terms": [
+                                  {"op":"atDepth","target":"attacker","depth":"front"},
+                                  {"op":"atDepth","target":"attacker","depth":"back"}
+                                ]
+                              }
+                            ]
+                          },
+                          {
+                            "op": "and",
+                            "terms": [
+                              {"op":"gte","a":{"op":"laneOf","target":"target"},"b":0},
+                              {
+                                "op": "or",
+                                "terms": [
+                                  {"op":"atDepth","target":"target","depth":"front"},
+                                  {"op":"atDepth","target":"target","depth":"back"}
+                                ]
+                              }
+                            ]
+                          }
+                        ]
+                      },
+                      {
+                        "op": "and",
+                        "terms": [
+                          {
+                            "op": "not",
+                            "term": {
+                              "op": "and",
+                              "terms": [
+                                {"op":"atDepth","target":"target","depth":"back"},
+                                {
+                                  "op": "gte",
+                                  "a": {
+                                    "op": "count",
+                                    "filter": {
+                                      "controller": {"k":"controllerOf","target":"target"},
+                                      "where": {
+                                        "op": "and",
+                                        "terms": [
+                                          {
+                                            "op": "eq",
+                                            "a": {"op":"laneOf","target":"subject"},
+                                            "b": {"op":"laneOf","target":"target"}
+                                          },
+                                          {"op":"atDepth","target":"subject","depth":"front"}
+                                        ]
+                                      }
+                                    }
+                                  },
+                                  "b": 1
+                                },
+                                {
+                                  "op": "not",
+                                  "term": {"op":"hasKeyword","target":"attacker","keyword":"reach"}
+                                }
+                              ]
+                            }
+                          },
+                          {
+                            "op": "or",
+                            "terms": [
+                              {
+                                "op": "gte",
+                                "a": {"op":"targetField","target":"attacker","key":"lr"},
+                                "b": 1
+                              },
+                              {
+                                "op": "eq",
+                                "a": {"op":"laneOf","target":"attacker"},
+                                "b": {"op":"laneOf","target":"target"}
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "op": "and",
+                    "terms": [
+                      {
+                        "op": "not",
+                        "term": {
+                          "op": "and",
+                          "terms": [
+                            {
+                              "op": "and",
+                              "terms": [
+                                {"op":"gte","a":{"op":"laneOf","target":"attacker"},"b":0},
+                                {
+                                  "op": "or",
+                                  "terms": [
+                                    {"op":"atDepth","target":"attacker","depth":"front"},
+                                    {"op":"atDepth","target":"attacker","depth":"back"}
+                                  ]
+                                }
+                              ]
+                            },
+                            {
+                              "op": "and",
+                              "terms": [
+                                {"op":"gte","a":{"op":"laneOf","target":"target"},"b":0},
+                                {
+                                  "op": "or",
+                                  "terms": [
+                                    {"op":"atDepth","target":"target","depth":"front"},
+                                    {"op":"atDepth","target":"target","depth":"back"}
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "op": "and",
+                        "terms": [
+                          {
+                            "op": "not",
+                            "term": {
+                              "op": "and",
+                              "terms": [
+                                {
+                                  "op": "gte",
+                                  "a": {
+                                    "op": "count",
+                                    "filter": {
+                                      "only": "target",
+                                      "zone": {"scope":"named","def":"back"}
+                                    }
+                                  },
+                                  "b": 1
+                                },
+                                {
+                                  "op": "gte",
+                                  "a": {
+                                    "op": "count",
+                                    "filter": {
+                                      "controller": {"k":"controllerOf","target":"target"},
+                                      "zone": {"scope":"named","def":"front"}
+                                    }
+                                  },
+                                  "b": 1
+                                }
+                              ]
+                            }
+                          },
+                          {
+                            "op": "or",
+                            "terms": [
+                              {"op":"hasKeyword","target":"attacker","keyword":"reach"},
+                              {
+                                "op": "gte",
+                                "a": {"op":"targetField","target":"attacker","key":"lr"},
+                                "b": 1
+                              },
+                              {"op":"zoneOwner","target":"attacker"},
+                              {"op":"zoneOwner","target":"target"},
+                              {
+                                "op": "gte",
+                                "a": {
+                                  "op": "count",
+                                  "filter": {
+                                    "only": "target",
+                                    "zone": {"scope":"sameDef","of":"attacker"}
+                                  }
+                                },
+                                "b": 1
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              },
+              "reachesFace": {
+                "op": "or",
+                "terms": [
+                  {
+                    "op": "and",
+                    "terms": [
+                      {
+                        "op": "and",
+                        "terms": [
+                          {"op":"gte","a":{"op":"laneOf","target":"attacker"},"b":0},
+                          {
+                            "op": "or",
+                            "terms": [
+                              {"op":"atDepth","target":"attacker","depth":"front"},
+                              {"op":"atDepth","target":"attacker","depth":"back"}
+                            ]
+                          }
+                        ]
+                      },
+                      {
+                        "op": "and",
+                        "terms": [
+                          {"op":"gte","a":{"op":"laneOf","target":"attacker"},"b":0},
+                          {
+                            "op": "not",
+                            "term": {
+                              "op": "gte",
+                              "a": {
+                                "op": "count",
+                                "filter": {
+                                  "controller": {"k":"defending"},
+                                  "where": {
+                                    "op": "and",
+                                    "terms": [
+                                      {
+                                        "op": "eq",
+                                        "a": {"op":"laneOf","target":"subject"},
+                                        "b": {"op":"laneOf","target":"attacker"}
+                                      },
+                                      {
+                                        "op": "and",
+                                        "terms": [
+                                          {"op":"gte","a":{"op":"laneOf","target":"subject"},"b":0},
+                                          {
+                                            "op": "or",
+                                            "terms": [
+                                              {"op":"atDepth","target":"subject","depth":"front"},
+                                              {"op":"atDepth","target":"subject","depth":"back"}
+                                            ]
+                                          }
+                                        ]
+                                      }
+                                    ]
+                                  }
+                                }
+                              },
+                              "b": 1
+                            }
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "op": "and",
+                    "terms": [
+                      {
+                        "op": "not",
+                        "term": {
+                          "op": "and",
+                          "terms": [
+                            {"op":"gte","a":{"op":"laneOf","target":"attacker"},"b":0},
+                            {
+                              "op": "or",
+                              "terms": [
+                                {"op":"atDepth","target":"attacker","depth":"front"},
+                                {"op":"atDepth","target":"attacker","depth":"back"}
+                              ]
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "op": "or",
+                        "terms": [
+                          {
+                            "op": "or",
+                            "terms": [
+                              {"op":"hasKeyword","target":"attacker","keyword":"reach"},
+                              {
+                                "op": "gte",
+                                "a": {"op":"targetField","target":"attacker","key":"lr"},
+                                "b": 1
+                              }
+                            ]
+                          },
+                          {
+                            "op": "not",
+                            "term": {
+                              "op": "and",
+                              "terms": [
+                                {"op":"not","term":{"op":"zoneOwner","target":"attacker"}},
+                                {
+                                  "op": "gte",
+                                  "a": {
+                                    "op": "count",
+                                    "filter": {
+                                      "where": {
+                                        "op": "zoneOwner",
+                                        "target": "subject",
+                                        "who": {"k":"defending"}
+                                      },
+                                      "zone": {"scope":"sameDef","of":"attacker"}
+                                    }
+                                  },
+                                  "b": 1
+                                }
+                              ]
+                            }
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            "lethal": {"where":{"op":"hasKeyword","target":"subject","keyword":"deathtouch"}},
+            "window": true,
+            "overflow": true
+          }
+        ]
+      }
+    },
+    "laneGridCore": {
+      "program": {
+        "op": "sequence",
+        "steps": [
+          {
+            "op": "freeAttacks",
+            "step": "strike",
+            "actors": {
+              "where": {
+                "op": "and",
+                "terms": [
+                  {
+                    "op": "or",
+                    "terms": [
+                      {"op":"hasField","target":"subject","key":"sr"},
+                      {"op":"hasField","target":"subject","key":"lr"}
+                    ]
+                  },
+                  {"op":"not","term":{"op":"isExhausted","target":"subject"}}
+                ]
+              }
+            },
+            "body": {
+              "amount": {
+                "op": "cond",
+                "if": {"op":"zoneOwner","target":"attacker"},
+                "then": {"op":"targetField","target":"attacker","key":"sr"},
+                "else": {
+                  "op": "cond",
+                  "if": {"op":"zoneOwner","target":"target"},
+                  "then": {"op":"targetField","target":"attacker","key":"lr"},
+                  "else": {
+                    "op": "cond",
+                    "if": {
+                      "op": "gte",
+                      "a": {
+                        "op": "count",
+                        "filter": {"only":"target","zone":{"scope":"sameDef","of":"attacker"}}
+                      },
+                      "b": 1
+                    },
+                    "then": {"op":"targetField","target":"attacker","key":"sr"},
+                    "else": {"op":"targetField","target":"attacker","key":"lr"}
+                  }
+                }
+              },
+              "faceAmount": {
+                "op": "cond",
+                "if": {"op":"zoneOwner","target":"attacker"},
+                "then": {"op":"targetField","target":"attacker","key":"sr"},
+                "else": {"op":"targetField","target":"attacker","key":"lr"}
+              },
+              "reaches": {
+                "op": "or",
+                "terms": [
+                  {
+                    "op": "and",
+                    "terms": [
+                      {
+                        "op": "and",
+                        "terms": [
+                          {
+                            "op": "and",
+                            "terms": [
+                              {"op":"gte","a":{"op":"laneOf","target":"attacker"},"b":0},
+                              {
+                                "op": "or",
+                                "terms": [
+                                  {"op":"atDepth","target":"attacker","depth":"front"},
+                                  {"op":"atDepth","target":"attacker","depth":"back"}
+                                ]
+                              }
+                            ]
+                          },
+                          {
+                            "op": "and",
+                            "terms": [
+                              {"op":"gte","a":{"op":"laneOf","target":"target"},"b":0},
+                              {
+                                "op": "or",
+                                "terms": [
+                                  {"op":"atDepth","target":"target","depth":"front"},
+                                  {"op":"atDepth","target":"target","depth":"back"}
+                                ]
+                              }
+                            ]
+                          }
+                        ]
+                      },
+                      {
+                        "op": "and",
+                        "terms": [
+                          {
+                            "op": "not",
+                            "term": {
+                              "op": "and",
+                              "terms": [
+                                {"op":"atDepth","target":"target","depth":"back"},
+                                {
+                                  "op": "gte",
+                                  "a": {
+                                    "op": "count",
+                                    "filter": {
+                                      "controller": {"k":"controllerOf","target":"target"},
+                                      "where": {
+                                        "op": "and",
+                                        "terms": [
+                                          {
+                                            "op": "eq",
+                                            "a": {"op":"laneOf","target":"subject"},
+                                            "b": {"op":"laneOf","target":"target"}
+                                          },
+                                          {"op":"atDepth","target":"subject","depth":"front"}
+                                        ]
+                                      }
+                                    }
+                                  },
+                                  "b": 1
+                                },
+                                {
+                                  "op": "not",
+                                  "term": {"op":"hasKeyword","target":"attacker","keyword":"reach"}
+                                }
+                              ]
+                            }
+                          },
+                          {
+                            "op": "or",
+                            "terms": [
+                              {
+                                "op": "gte",
+                                "a": {"op":"targetField","target":"attacker","key":"lr"},
+                                "b": 1
+                              },
+                              {
+                                "op": "eq",
+                                "a": {"op":"laneOf","target":"attacker"},
+                                "b": {"op":"laneOf","target":"target"}
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "op": "and",
+                    "terms": [
+                      {
+                        "op": "not",
+                        "term": {
+                          "op": "and",
+                          "terms": [
+                            {
+                              "op": "and",
+                              "terms": [
+                                {"op":"gte","a":{"op":"laneOf","target":"attacker"},"b":0},
+                                {
+                                  "op": "or",
+                                  "terms": [
+                                    {"op":"atDepth","target":"attacker","depth":"front"},
+                                    {"op":"atDepth","target":"attacker","depth":"back"}
+                                  ]
+                                }
+                              ]
+                            },
+                            {
+                              "op": "and",
+                              "terms": [
+                                {"op":"gte","a":{"op":"laneOf","target":"target"},"b":0},
+                                {
+                                  "op": "or",
+                                  "terms": [
+                                    {"op":"atDepth","target":"target","depth":"front"},
+                                    {"op":"atDepth","target":"target","depth":"back"}
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "op": "or",
+                        "terms": [
+                          {"op":"hasKeyword","target":"attacker","keyword":"reach"},
+                          {
+                            "op": "gte",
+                            "a": {"op":"targetField","target":"attacker","key":"lr"},
+                            "b": 1
+                          },
+                          {"op":"zoneOwner","target":"attacker"},
+                          {"op":"zoneOwner","target":"target"},
+                          {
+                            "op": "gte",
+                            "a": {
+                              "op": "count",
+                              "filter": {
+                                "only": "target",
+                                "zone": {"scope":"sameDef","of":"attacker"}
+                              }
+                            },
+                            "b": 1
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              },
+              "reachesFace": {
+                "op": "or",
+                "terms": [
+                  {
+                    "op": "and",
+                    "terms": [
+                      {
+                        "op": "and",
+                        "terms": [
+                          {"op":"gte","a":{"op":"laneOf","target":"attacker"},"b":0},
+                          {
+                            "op": "or",
+                            "terms": [
+                              {"op":"atDepth","target":"attacker","depth":"front"},
+                              {"op":"atDepth","target":"attacker","depth":"back"}
+                            ]
+                          }
+                        ]
+                      },
+                      {
+                        "op": "and",
+                        "terms": [
+                          {"op":"gte","a":{"op":"laneOf","target":"attacker"},"b":0},
+                          {
+                            "op": "not",
+                            "term": {
+                              "op": "gte",
+                              "a": {
+                                "op": "count",
+                                "filter": {
+                                  "controller": {"k":"defending"},
+                                  "where": {
+                                    "op": "and",
+                                    "terms": [
+                                      {
+                                        "op": "eq",
+                                        "a": {"op":"laneOf","target":"subject"},
+                                        "b": {"op":"laneOf","target":"attacker"}
+                                      },
+                                      {
+                                        "op": "and",
+                                        "terms": [
+                                          {"op":"gte","a":{"op":"laneOf","target":"subject"},"b":0},
+                                          {
+                                            "op": "or",
+                                            "terms": [
+                                              {"op":"atDepth","target":"subject","depth":"front"},
+                                              {"op":"atDepth","target":"subject","depth":"back"}
+                                            ]
+                                          }
+                                        ]
+                                      }
+                                    ]
+                                  }
+                                }
+                              },
+                              "b": 1
+                            }
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "op": "and",
+                    "terms": [
+                      {
+                        "op": "not",
+                        "term": {
+                          "op": "and",
+                          "terms": [
+                            {"op":"gte","a":{"op":"laneOf","target":"attacker"},"b":0},
+                            {
+                              "op": "or",
+                              "terms": [
+                                {"op":"atDepth","target":"attacker","depth":"front"},
+                                {"op":"atDepth","target":"attacker","depth":"back"}
+                              ]
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "op": "not",
+                        "term": {
+                          "op": "and",
+                          "terms": [
+                            {"op":"not","term":{"op":"zoneOwner","target":"attacker"}},
+                            {
+                              "op": "gte",
+                              "a": {
+                                "op": "count",
+                                "filter": {
+                                  "where": {
+                                    "op": "zoneOwner",
+                                    "target": "subject",
+                                    "who": {"k":"defending"}
+                                  },
+                                  "zone": {"scope":"sameDef","of":"attacker"}
+                                }
+                              },
+                              "b": 1
+                            }
+                          ]
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            "guns": [
+              {
+                "amount": {"op":"targetField","target":"attacker","key":"sr"},
+                "carried": {
+                  "op": "gte",
+                  "a": {"op":"targetField","target":"attacker","key":"sr"},
+                  "b": 1
+                },
+                "reaches": {
+                  "op": "or",
+                  "terms": [
+                    {
+                      "op": "and",
+                      "terms": [
+                        {
+                          "op": "and",
+                          "terms": [
+                            {
+                              "op": "and",
+                              "terms": [
+                                {"op":"gte","a":{"op":"laneOf","target":"attacker"},"b":0},
+                                {
+                                  "op": "or",
+                                  "terms": [
+                                    {"op":"atDepth","target":"attacker","depth":"front"},
+                                    {"op":"atDepth","target":"attacker","depth":"back"}
+                                  ]
+                                }
+                              ]
+                            },
+                            {
+                              "op": "and",
+                              "terms": [
+                                {"op":"gte","a":{"op":"laneOf","target":"target"},"b":0},
+                                {
+                                  "op": "or",
+                                  "terms": [
+                                    {"op":"atDepth","target":"target","depth":"front"},
+                                    {"op":"atDepth","target":"target","depth":"back"}
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "op": "and",
+                          "terms": [
+                            {
+                              "op": "not",
+                              "term": {
+                                "op": "and",
+                                "terms": [
+                                  {"op":"atDepth","target":"target","depth":"back"},
+                                  {
+                                    "op": "gte",
+                                    "a": {
+                                      "op": "count",
+                                      "filter": {
+                                        "controller": {"k":"controllerOf","target":"target"},
+                                        "where": {
+                                          "op": "and",
+                                          "terms": [
+                                            {
+                                              "op": "eq",
+                                              "a": {"op":"laneOf","target":"subject"},
+                                              "b": {"op":"laneOf","target":"target"}
+                                            },
+                                            {"op":"atDepth","target":"subject","depth":"front"}
+                                          ]
+                                        }
+                                      }
+                                    },
+                                    "b": 1
+                                  },
+                                  {
+                                    "op": "not",
+                                    "term": {
+                                      "op": "hasKeyword",
+                                      "target": "attacker",
+                                      "keyword": "reach"
+                                    }
+                                  }
+                                ]
+                              }
+                            },
+                            {
+                              "op": "eq",
+                              "a": {"op":"laneOf","target":"attacker"},
+                              "b": {"op":"laneOf","target":"target"}
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "op": "and",
+                      "terms": [
+                        {
+                          "op": "not",
+                          "term": {
+                            "op": "and",
+                            "terms": [
+                              {
+                                "op": "and",
+                                "terms": [
+                                  {"op":"gte","a":{"op":"laneOf","target":"attacker"},"b":0},
+                                  {
+                                    "op": "or",
+                                    "terms": [
+                                      {"op":"atDepth","target":"attacker","depth":"front"},
+                                      {"op":"atDepth","target":"attacker","depth":"back"}
+                                    ]
+                                  }
+                                ]
+                              },
+                              {
+                                "op": "and",
+                                "terms": [
+                                  {"op":"gte","a":{"op":"laneOf","target":"target"},"b":0},
+                                  {
+                                    "op": "or",
+                                    "terms": [
+                                      {"op":"atDepth","target":"target","depth":"front"},
+                                      {"op":"atDepth","target":"target","depth":"back"}
+                                    ]
+                                  }
+                                ]
+                              }
+                            ]
+                          }
+                        },
+                        {
+                          "op": "or",
+                          "terms": [
+                            {"op":"hasKeyword","target":"attacker","keyword":"reach"},
+                            {
+                              "op": "gte",
+                              "a": {"op":"targetField","target":"attacker","key":"lr"},
+                              "b": 1
+                            },
+                            {"op":"zoneOwner","target":"attacker"},
+                            {"op":"zoneOwner","target":"target"},
+                            {
+                              "op": "gte",
+                              "a": {
+                                "op": "count",
+                                "filter": {
+                                  "only": "target",
+                                  "zone": {"scope":"sameDef","of":"attacker"}
+                                }
+                              },
+                              "b": 1
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "reachesFace": {
+                  "op": "or",
+                  "terms": [
+                    {
+                      "op": "and",
+                      "terms": [
+                        {
+                          "op": "and",
+                          "terms": [
+                            {"op":"gte","a":{"op":"laneOf","target":"attacker"},"b":0},
+                            {
+                              "op": "or",
+                              "terms": [
+                                {"op":"atDepth","target":"attacker","depth":"front"},
+                                {"op":"atDepth","target":"attacker","depth":"back"}
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "op": "and",
+                          "terms": [
+                            {"op":"gte","a":{"op":"laneOf","target":"attacker"},"b":0},
+                            {
+                              "op": "not",
+                              "term": {
+                                "op": "gte",
+                                "a": {
+                                  "op": "count",
+                                  "filter": {
+                                    "controller": {"k":"defending"},
+                                    "where": {
+                                      "op": "and",
+                                      "terms": [
+                                        {
+                                          "op": "eq",
+                                          "a": {"op":"laneOf","target":"subject"},
+                                          "b": {"op":"laneOf","target":"attacker"}
+                                        },
+                                        {
+                                          "op": "and",
+                                          "terms": [
+                                            {
+                                              "op": "gte",
+                                              "a": {"op":"laneOf","target":"subject"},
+                                              "b": 0
+                                            },
+                                            {
+                                              "op": "or",
+                                              "terms": [
+                                                {"op":"atDepth","target":"subject","depth":"front"},
+                                                {"op":"atDepth","target":"subject","depth":"back"}
+                                              ]
+                                            }
+                                          ]
+                                        }
+                                      ]
+                                    }
+                                  }
+                                },
+                                "b": 1
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "op": "and",
+                      "terms": [
+                        {
+                          "op": "not",
+                          "term": {
+                            "op": "and",
+                            "terms": [
+                              {"op":"gte","a":{"op":"laneOf","target":"attacker"},"b":0},
+                              {
+                                "op": "or",
+                                "terms": [
+                                  {"op":"atDepth","target":"attacker","depth":"front"},
+                                  {"op":"atDepth","target":"attacker","depth":"back"}
+                                ]
+                              }
+                            ]
+                          }
+                        },
+                        {
+                          "op": "not",
+                          "term": {
+                            "op": "and",
+                            "terms": [
+                              {"op":"not","term":{"op":"zoneOwner","target":"attacker"}},
+                              {
+                                "op": "gte",
+                                "a": {
+                                  "op": "count",
+                                  "filter": {
+                                    "where": {
+                                      "op": "zoneOwner",
+                                      "target": "subject",
+                                      "who": {"k":"defending"}
+                                    },
+                                    "zone": {"scope":"sameDef","of":"attacker"}
+                                  }
+                                },
+                                "b": 1
+                              }
+                            ]
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "label": "close"
+              },
+              {
+                "amount": {"op":"targetField","target":"attacker","key":"lr"},
+                "carried": {
+                  "op": "gte",
+                  "a": {"op":"targetField","target":"attacker","key":"lr"},
+                  "b": 1
+                },
+                "reaches": {
+                  "op": "or",
+                  "terms": [
+                    {
+                      "op": "and",
+                      "terms": [
+                        {
+                          "op": "and",
+                          "terms": [
+                            {
+                              "op": "and",
+                              "terms": [
+                                {"op":"gte","a":{"op":"laneOf","target":"attacker"},"b":0},
+                                {
+                                  "op": "or",
+                                  "terms": [
+                                    {"op":"atDepth","target":"attacker","depth":"front"},
+                                    {"op":"atDepth","target":"attacker","depth":"back"}
+                                  ]
+                                }
+                              ]
+                            },
+                            {
+                              "op": "and",
+                              "terms": [
+                                {"op":"gte","a":{"op":"laneOf","target":"target"},"b":0},
+                                {
+                                  "op": "or",
+                                  "terms": [
+                                    {"op":"atDepth","target":"target","depth":"front"},
+                                    {"op":"atDepth","target":"target","depth":"back"}
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "op": "not",
+                          "term": {
+                            "op": "and",
+                            "terms": [
+                              {"op":"atDepth","target":"target","depth":"back"},
+                              {
+                                "op": "gte",
+                                "a": {
+                                  "op": "count",
+                                  "filter": {
+                                    "controller": {"k":"controllerOf","target":"target"},
+                                    "where": {
+                                      "op": "and",
+                                      "terms": [
+                                        {
+                                          "op": "eq",
+                                          "a": {"op":"laneOf","target":"subject"},
+                                          "b": {"op":"laneOf","target":"target"}
+                                        },
+                                        {"op":"atDepth","target":"subject","depth":"front"}
+                                      ]
+                                    }
+                                  }
+                                },
+                                "b": 1
+                              },
+                              {
+                                "op": "not",
+                                "term": {"op":"hasKeyword","target":"attacker","keyword":"reach"}
+                              }
+                            ]
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "op": "and",
+                      "terms": [
+                        {
+                          "op": "not",
+                          "term": {
+                            "op": "and",
+                            "terms": [
+                              {
+                                "op": "and",
+                                "terms": [
+                                  {"op":"gte","a":{"op":"laneOf","target":"attacker"},"b":0},
+                                  {
+                                    "op": "or",
+                                    "terms": [
+                                      {"op":"atDepth","target":"attacker","depth":"front"},
+                                      {"op":"atDepth","target":"attacker","depth":"back"}
+                                    ]
+                                  }
+                                ]
+                              },
+                              {
+                                "op": "and",
+                                "terms": [
+                                  {"op":"gte","a":{"op":"laneOf","target":"target"},"b":0},
+                                  {
+                                    "op": "or",
+                                    "terms": [
+                                      {"op":"atDepth","target":"target","depth":"front"},
+                                      {"op":"atDepth","target":"target","depth":"back"}
+                                    ]
+                                  }
+                                ]
+                              }
+                            ]
+                          }
+                        },
+                        {
+                          "op": "or",
+                          "terms": [
+                            {"op":"hasKeyword","target":"attacker","keyword":"reach"},
+                            {
+                              "op": "gte",
+                              "a": {"op":"targetField","target":"attacker","key":"lr"},
+                              "b": 1
+                            },
+                            {"op":"zoneOwner","target":"attacker"},
+                            {"op":"zoneOwner","target":"target"},
+                            {
+                              "op": "gte",
+                              "a": {
+                                "op": "count",
+                                "filter": {
+                                  "only": "target",
+                                  "zone": {"scope":"sameDef","of":"attacker"}
+                                }
+                              },
+                              "b": 1
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "reachesFace": {
+                  "op": "or",
+                  "terms": [
+                    {
+                      "op": "and",
+                      "terms": [
+                        {
+                          "op": "and",
+                          "terms": [
+                            {"op":"gte","a":{"op":"laneOf","target":"attacker"},"b":0},
+                            {
+                              "op": "or",
+                              "terms": [
+                                {"op":"atDepth","target":"attacker","depth":"front"},
+                                {"op":"atDepth","target":"attacker","depth":"back"}
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "op": "and",
+                          "terms": [
+                            {"op":"gte","a":{"op":"laneOf","target":"attacker"},"b":0},
+                            {
+                              "op": "not",
+                              "term": {
+                                "op": "gte",
+                                "a": {
+                                  "op": "count",
+                                  "filter": {
+                                    "controller": {"k":"defending"},
+                                    "where": {
+                                      "op": "and",
+                                      "terms": [
+                                        {
+                                          "op": "eq",
+                                          "a": {"op":"laneOf","target":"subject"},
+                                          "b": {"op":"laneOf","target":"attacker"}
+                                        },
+                                        {
+                                          "op": "and",
+                                          "terms": [
+                                            {
+                                              "op": "gte",
+                                              "a": {"op":"laneOf","target":"subject"},
+                                              "b": 0
+                                            },
+                                            {
+                                              "op": "or",
+                                              "terms": [
+                                                {"op":"atDepth","target":"subject","depth":"front"},
+                                                {"op":"atDepth","target":"subject","depth":"back"}
+                                              ]
+                                            }
+                                          ]
+                                        }
+                                      ]
+                                    }
+                                  }
+                                },
+                                "b": 1
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "op": "and",
+                      "terms": [
+                        {
+                          "op": "not",
+                          "term": {
+                            "op": "and",
+                            "terms": [
+                              {"op":"gte","a":{"op":"laneOf","target":"attacker"},"b":0},
+                              {
+                                "op": "or",
+                                "terms": [
+                                  {"op":"atDepth","target":"attacker","depth":"front"},
+                                  {"op":"atDepth","target":"attacker","depth":"back"}
+                                ]
+                              }
+                            ]
+                          }
+                        },
+                        {
+                          "op": "not",
+                          "term": {
+                            "op": "and",
+                            "terms": [
+                              {"op":"not","term":{"op":"zoneOwner","target":"attacker"}},
+                              {
+                                "op": "gte",
+                                "a": {
+                                  "op": "count",
+                                  "filter": {
+                                    "where": {
+                                      "op": "zoneOwner",
+                                      "target": "subject",
+                                      "who": {"k":"defending"}
+                                    },
+                                    "zone": {"scope":"sameDef","of":"attacker"}
+                                  }
+                                },
+                                "b": 1
+                              }
+                            ]
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "label": "far"
+              }
+            ],
+            "lethal": {"where":{"op":"hasKeyword","target":"subject","keyword":"deathtouch"}},
+            "window": true,
+            "overflow": true
+          }
+        ]
+      }
+    },
+    "hearthstone": {
+      "program": {"op":"combatWindow"},
+      "attack": {
+        "op": "attack",
+        "attacker": {
+          "where": {"op":"not","term":{"op":"hasKeyword","target":"subject","keyword":"defender"}}
+        },
+        "targets": {
+          "controller": "opponent",
+          "where": {"op":"not","term":{"op":"hasKeyword","target":"subject","keyword":"stealth"}}
+        },
+        "attacksPerTurn": {
+          "op": "add",
+          "a": 1,
+          "b": {
+            "op": "count",
+            "filter": {
+              "only": "subject",
+              "where": {"op":"hasKeyword","target":"subject","keyword":"windfury"}
+            }
+          }
+        },
+        "mustTarget": {
+          "controller": "opponent",
+          "where": {"op":"hasKeyword","target":"subject","keyword":"taunt"}
+        },
+        "staysReady": {"where":{"op":"hasKeyword","target":"subject","keyword":"vigilance"}},
+        "then": {
+          "op": "sequence",
+          "steps": [
+            {
+              "op": "strike",
+              "step": "strike",
+              "amount": {"op":"targetField","target":"subject","key":"power"},
+              "lethal": {"where":{"op":"hasKeyword","target":"subject","keyword":"deathtouch"}}
+            }
+          ]
+        }
+      }
+    },
+    "onePiece": {
+      "program": {"op":"combatWindow"},
+      "attack": {
+        "op": "attack",
+        "attacker": {
+          "where": {"op":"not","term":{"op":"hasKeyword","target":"subject","keyword":"defender"}}
+        },
+        "targets": {
+          "controller": "opponent",
+          "where": {
+            "op": "or",
+            "terms": [
+              {"op":"isExhausted","target":"subject"},
+              {"op":"isType","target":"subject","types":["Leader"]}
+            ]
+          }
+        },
+        "attacksPerTurn": {
+          "op": "add",
+          "a": 1,
+          "b": {
+            "op": "count",
+            "filter": {
+              "only": "subject",
+              "where": {"op":"hasKeyword","target":"subject","keyword":"windfury"}
+            }
+          }
+        },
+        "redirect": {
+          "controller": "you",
+          "where": {
+            "op": "and",
+            "terms": [
+              {"op":"not","term":{"op":"isExhausted","target":"subject"}},
+              {"op":"hasKeyword","target":"subject","keyword":"blocker"}
+            ]
+          }
+        },
+        "staysReady": {"where":{"op":"hasKeyword","target":"subject","keyword":"vigilance"}},
+        "then": {
+          "op": "sequence",
+          "steps": [
+            {
+              "op": "clash",
+              "step": "clash",
+              "attackStat": {"op":"targetField","target":"subject","key":"power"},
+              "defendStat": {"op":"targetField","target":"subject","key":"power"},
+              "faceAmount": 1,
+              "returnDamage": false,
+              "onTie": "attacker_wins",
+              "pierces": {
+                "where": {
+                  "op": "or",
+                  "terms": [
+                    {"op":"hasKeyword","target":"subject","keyword":"trample"},
+                    {"op":"hasKeyword","target":"subject","keyword":"piercing"}
+                  ]
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    "yugioh": {
+      "program": {"op":"combatWindow"},
+      "attack": {
+        "op": "attack",
+        "attacker": {
+          "where": {"op":"not","term":{"op":"hasKeyword","target":"subject","keyword":"defender"}}
+        },
+        "targets": {"controller":"opponent"},
+        "attacksPerTurn": {
+          "op": "add",
+          "a": 1,
+          "b": {
+            "op": "count",
+            "filter": {
+              "only": "subject",
+              "where": {"op":"hasKeyword","target":"subject","keyword":"windfury"}
+            }
+          }
+        },
+        "staysReady": {"where":{"op":"hasKeyword","target":"subject","keyword":"vigilance"}},
+        "then": {
+          "op": "sequence",
+          "steps": [
+            {
+              "op": "clash",
+              "step": "battle",
+              "attackStat": {"op":"targetField","target":"subject","key":"power"},
+              "defendStat": {"op":"targetField","target":"subject","key":"power"},
+              "excessToController": true,
+              "stances": [{"name":"defense","defendsWith":"defense"}],
+              "pierces": {
+                "where": {
+                  "op": "or",
+                  "terms": [
+                    {"op":"hasKeyword","target":"subject","keyword":"trample"},
+                    {"op":"hasKeyword","target":"subject","keyword":"piercing"}
+                  ]
+                }
+              }
+            }
+          ]
+        }
+      }
+    }
+  }
+}

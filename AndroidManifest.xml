@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.ccg">
+
+    <uses-sdk android:minSdkVersion="23" android:targetSdkVersion="34" />
+
+    <application android:label="CardEngine" android:icon="@drawable/ic_launcher"
+        android:allowBackup="true"
+        android:theme="@style/CardEngineTheme"
+        android:enableOnBackInvokedCallback="true">
+        <!--
+          configChanges is what makes landscape USABLE rather than merely
+          possible. Without it a rotation recreates the Activity, and the
+          Player holds its PlaySession in a plain remember, so turning the
+          phone sideways mid game dropped you back on the game picker with the
+          game gone. Handling these ourselves means Compose is simply re
+          composed with the new size and the session is never touched.
+
+          Not a substitute for saving state across PROCESS DEATH, which is a
+          separate and still open problem: PlaySession is (seed, deck picks,
+          answers), so it is cheap to persist, but it needs a Saver and is not
+          in scope here.
+        -->
+        <activity android:name=".MainActivity" android:exported="true"
+            android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize|keyboardHidden">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+    </application>
+</manifest>

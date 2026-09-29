@@ -1,0 +1,116 @@
+{
+  "formatVersion": 8,
+  "id": "sample-swu",
+  "name": "War Table (SW: Unlimited-like)",
+  "rules": {
+    "extraTypes": [
+      {"name":"Unit","fields":["power","hp"],"attacks":true},
+      {"name":"Leader"},
+      {"name":"Base"},
+      {"name":"Event","isSpell":true}
+    ],
+    "combat": {"kind":"preset","name":"mtg"},
+    "params": {
+      "hand": 6,
+      "draw": 1,
+      "skipFirstDraw": true,
+      "mulligan": {"redraws":0,"bottomOne":true},
+      "players": 2,
+      "orientation": "landscape",
+      "poolPersistsPerTurn": false
+    },
+    "resources": {"kind":"ramp","perTurn":1,"cap":12,"refill":true,"start":0,"key":""},
+    "counters": [{"name":"life","starting":30,"loseAtZero":true}],
+    "counterKinds": []
+  },
+  "sets": [
+    {
+      "name": "Core",
+      "cards": [
+        {"faces":[{"name":"General Vell","types":["Leader"],"keywords":["Command","Heroism"]}]},
+        {
+          "faces": [
+            {"name":"Shield Bastion","types":["Base"],"fields":{"hp":30},"keywords":["Vigilance"]}
+          ]
+        },
+        {
+          "faces": [
+            {
+              "name": "Frontline Trooper",
+              "types": ["Unit"],
+              "fields": {"power":2,"hp":2},
+              "keywords": ["Command"]
+            }
+          ]
+        },
+        {
+          "faces": [
+            {
+              "name": "Recon Flyer",
+              "types": ["Unit"],
+              "fields": {"power":1,"hp":1},
+              "keywords": ["Vigilance"],
+              "triggers": [
+                {"op":"selfEnters","effect":{"op":"draw","who":"you","count":1},"order":0}
+              ]
+            }
+          ]
+        },
+        {
+          "faces": [
+            {
+              "name": "Heavy Walker",
+              "types": ["Unit"],
+              "fields": {"power":4,"hp":5},
+              "keywords": ["Command"]
+            }
+          ]
+        },
+        {
+          "faces": [
+            {
+              "name": "Hero of the Cause",
+              "types": ["Unit"],
+              "fields": {"power":3,"hp":3},
+              "keywords": ["Heroism"]
+            }
+          ]
+        },
+        {"faces":[{"name":"Bounty Hunter","types":["Unit"],"fields":{"power":3,"hp":2}}]},
+        {
+          "faces": [
+            {
+              "name": "Turbo Strike",
+              "types": ["Event"],
+              "castEffect": {"op":"damageOpponent","amount":3}
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "decks": [
+    {
+      "name": "Coalition",
+      "entries": [
+        {"card":"Frontline Trooper","n":5},
+        {"card":"Recon Flyer","n":4},
+        {"card":"Heavy Walker","n":4},
+        {"card":"Hero of the Cause","n":4},
+        {"card":"Bounty Hunter","n":5},
+        {"card":"Turbo Strike","n":2}
+      ],
+      "slots": {"Leader":["General Vell"],"Base":["Shield Bastion"]}
+    }
+  ],
+  "deckRules": {
+    "minSize": 24,
+    "maxSize": 60,
+    "maxCopies": 12,
+    "slots": [{"name":"Leader","types":["Leader"]},{"name":"Base","types":["Base"]}],
+    "identity": {
+      "from": ["Leader","Base"],
+      "vocabulary": ["Vigilance","Command","Aggression","Cunning","Heroism","Villainy"]
+    }
+  }
+}

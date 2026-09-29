@@ -1,0 +1,2299 @@
+{
+  "formatVersion": 8,
+  "contentVersion": 18,
+  "id": "core-bundle",
+  "name": "Core",
+  "rules": {
+    "extraTypes": [
+      {
+        "name": "Ship",
+        "fields": ["sr","lr","hull"],
+        "diesWhen": {"op":"lte","a":{"op":"selfCounter","kind":"hull"},"b":0},
+        "attacks": true,
+        "zoneChoices": ["1F","1B","2F","2B","3F","3B"],
+        "damageCounter": "hull",
+        "layout": {"statFields":["sr","lr"],"counterTrack":"bottom_strip","counterKind":"hull"}
+      },
+      {
+        "name": "Station",
+        "fields": ["powerUp"],
+        "diesWhen": {"op":"lte","a":{"op":"selfCounter","kind":"hull"},"b":0},
+        "loseOnDeath": true,
+        "damageCounter": "hull",
+        "layout": {
+          "statCorner": "none",
+          "statFields": [],
+          "counterTrack": "bottom_strip",
+          "counterKind": "hull"
+        }
+      },
+      {"name":"Leader"},
+      {"name":"Doctrine"},
+      {"name":"Manoeuvre","isSpell":true,"instantSpeed":true},
+      {"name":"Directive","isSpell":true,"usesStack":false}
+    ],
+    "extraZones": [
+      {"id":"1F","scope":"per_player","maxOccupants":1,"lane":1,"depth":"front"},
+      {"id":"1B","scope":"per_player","maxOccupants":1,"lane":1,"depth":"back"},
+      {"id":"2F","scope":"per_player","maxOccupants":1,"lane":2,"depth":"front"},
+      {"id":"2B","scope":"per_player","maxOccupants":1,"lane":2,"depth":"back"},
+      {"id":"3F","scope":"per_player","maxOccupants":1,"lane":3,"depth":"front"},
+      {"id":"3B","scope":"per_player","maxOccupants":1,"lane":3,"depth":"back"}
+    ],
+    "extraHiddenZones": [{"id":"flagships"}],
+    "combat": {
+      "kind": "program",
+      "combat": {
+        "program": {
+          "op": "sequence",
+          "steps": [
+            {
+              "op": "freeAttacks",
+              "step": "strike",
+              "actors": {
+                "where": {
+                  "op": "and",
+                  "terms": [
+                    {
+                      "op": "or",
+                      "terms": [
+                        {"op":"hasField","target":"subject","key":"sr"},
+                        {"op":"hasField","target":"subject","key":"lr"}
+                      ]
+                    },
+                    {"op":"not","term":{"op":"isExhausted","target":"subject"}}
+                  ]
+                }
+              },
+              "body": {
+                "amount": {
+                  "op": "cond",
+                  "if": {"op":"zoneOwner","target":"attacker"},
+                  "then": {"op":"targetField","target":"attacker","key":"sr"},
+                  "else": {
+                    "op": "cond",
+                    "if": {"op":"zoneOwner","target":"target"},
+                    "then": {"op":"targetField","target":"attacker","key":"lr"},
+                    "else": {
+                      "op": "cond",
+                      "if": {
+                        "op": "gte",
+                        "a": {
+                          "op": "count",
+                          "filter": {"only":"target","zone":{"scope":"sameDef","of":"attacker"}}
+                        },
+                        "b": 1
+                      },
+                      "then": {"op":"targetField","target":"attacker","key":"sr"},
+                      "else": {"op":"targetField","target":"attacker","key":"lr"}
+                    }
+                  }
+                },
+                "faceAmount": {
+                  "op": "cond",
+                  "if": {"op":"zoneOwner","target":"attacker"},
+                  "then": {"op":"targetField","target":"attacker","key":"sr"},
+                  "else": {"op":"targetField","target":"attacker","key":"lr"}
+                },
+                "reaches": {
+                  "op": "or",
+                  "terms": [
+                    {
+                      "op": "and",
+                      "terms": [
+                        {
+                          "op": "and",
+                          "terms": [
+                            {
+                              "op": "and",
+                              "terms": [
+                                {"op":"gte","a":{"op":"laneOf","target":"attacker"},"b":0},
+                                {
+                                  "op": "or",
+                                  "terms": [
+                                    {"op":"atDepth","target":"attacker","depth":"front"},
+                                    {"op":"atDepth","target":"attacker","depth":"back"}
+                                  ]
+                                }
+                              ]
+                            },
+                            {
+                              "op": "and",
+                              "terms": [
+                                {"op":"gte","a":{"op":"laneOf","target":"target"},"b":0},
+                                {
+                                  "op": "or",
+                                  "terms": [
+                                    {"op":"atDepth","target":"target","depth":"front"},
+                                    {"op":"atDepth","target":"target","depth":"back"}
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "op": "and",
+                          "terms": [
+                            {
+                              "op": "not",
+                              "term": {
+                                "op": "and",
+                                "terms": [
+                                  {"op":"atDepth","target":"target","depth":"back"},
+                                  {
+                                    "op": "gte",
+                                    "a": {
+                                      "op": "count",
+                                      "filter": {
+                                        "controller": {"k":"controllerOf","target":"target"},
+                                        "where": {
+                                          "op": "and",
+                                          "terms": [
+                                            {
+                                              "op": "eq",
+                                              "a": {"op":"laneOf","target":"subject"},
+                                              "b": {"op":"laneOf","target":"target"}
+                                            },
+                                            {"op":"atDepth","target":"subject","depth":"front"}
+                                          ]
+                                        }
+                                      }
+                                    },
+                                    "b": 1
+                                  },
+                                  {
+                                    "op": "not",
+                                    "term": {
+                                      "op": "hasKeyword",
+                                      "target": "attacker",
+                                      "keyword": "reach"
+                                    }
+                                  }
+                                ]
+                              }
+                            },
+                            {
+                              "op": "or",
+                              "terms": [
+                                {
+                                  "op": "gte",
+                                  "a": {"op":"targetField","target":"attacker","key":"lr"},
+                                  "b": 1
+                                },
+                                {
+                                  "op": "eq",
+                                  "a": {"op":"laneOf","target":"attacker"},
+                                  "b": {"op":"laneOf","target":"target"}
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "op": "and",
+                      "terms": [
+                        {
+                          "op": "not",
+                          "term": {
+                            "op": "and",
+                            "terms": [
+                              {
+                                "op": "and",
+                                "terms": [
+                                  {"op":"gte","a":{"op":"laneOf","target":"attacker"},"b":0},
+                                  {
+                                    "op": "or",
+                                    "terms": [
+                                      {"op":"atDepth","target":"attacker","depth":"front"},
+                                      {"op":"atDepth","target":"attacker","depth":"back"}
+                                    ]
+                                  }
+                                ]
+                              },
+                              {
+                                "op": "and",
+                                "terms": [
+                                  {"op":"gte","a":{"op":"laneOf","target":"target"},"b":0},
+                                  {
+                                    "op": "or",
+                                    "terms": [
+                                      {"op":"atDepth","target":"target","depth":"front"},
+                                      {"op":"atDepth","target":"target","depth":"back"}
+                                    ]
+                                  }
+                                ]
+                              }
+                            ]
+                          }
+                        },
+                        {
+                          "op": "or",
+                          "terms": [
+                            {"op":"hasKeyword","target":"attacker","keyword":"reach"},
+                            {
+                              "op": "gte",
+                              "a": {"op":"targetField","target":"attacker","key":"lr"},
+                              "b": 1
+                            },
+                            {"op":"zoneOwner","target":"attacker"},
+                            {"op":"zoneOwner","target":"target"},
+                            {
+                              "op": "gte",
+                              "a": {
+                                "op": "count",
+                                "filter": {
+                                  "only": "target",
+                                  "zone": {"scope":"sameDef","of":"attacker"}
+                                }
+                              },
+                              "b": 1
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "reachesFace": {
+                  "op": "or",
+                  "terms": [
+                    {
+                      "op": "and",
+                      "terms": [
+                        {
+                          "op": "and",
+                          "terms": [
+                            {"op":"gte","a":{"op":"laneOf","target":"attacker"},"b":0},
+                            {
+                              "op": "or",
+                              "terms": [
+                                {"op":"atDepth","target":"attacker","depth":"front"},
+                                {"op":"atDepth","target":"attacker","depth":"back"}
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "op": "and",
+                          "terms": [
+                            {"op":"gte","a":{"op":"laneOf","target":"attacker"},"b":0},
+                            {
+                              "op": "not",
+                              "term": {
+                                "op": "gte",
+                                "a": {
+                                  "op": "count",
+                                  "filter": {
+                                    "controller": {"k":"defending"},
+                                    "where": {
+                                      "op": "and",
+                                      "terms": [
+                                        {
+                                          "op": "eq",
+                                          "a": {"op":"laneOf","target":"subject"},
+                                          "b": {"op":"laneOf","target":"attacker"}
+                                        },
+                                        {
+                                          "op": "and",
+                                          "terms": [
+                                            {
+                                              "op": "gte",
+                                              "a": {"op":"laneOf","target":"subject"},
+                                              "b": 0
+                                            },
+                                            {
+                                              "op": "or",
+                                              "terms": [
+                                                {"op":"atDepth","target":"subject","depth":"front"},
+                                                {"op":"atDepth","target":"subject","depth":"back"}
+                                              ]
+                                            }
+                                          ]
+                                        }
+                                      ]
+                                    }
+                                  }
+                                },
+                                "b": 1
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "op": "and",
+                      "terms": [
+                        {
+                          "op": "not",
+                          "term": {
+                            "op": "and",
+                            "terms": [
+                              {"op":"gte","a":{"op":"laneOf","target":"attacker"},"b":0},
+                              {
+                                "op": "or",
+                                "terms": [
+                                  {"op":"atDepth","target":"attacker","depth":"front"},
+                                  {"op":"atDepth","target":"attacker","depth":"back"}
+                                ]
+                              }
+                            ]
+                          }
+                        },
+                        {
+                          "op": "not",
+                          "term": {
+                            "op": "and",
+                            "terms": [
+                              {"op":"not","term":{"op":"zoneOwner","target":"attacker"}},
+                              {
+                                "op": "gte",
+                                "a": {
+                                  "op": "count",
+                                  "filter": {
+                                    "where": {
+                                      "op": "zoneOwner",
+                                      "target": "subject",
+                                      "who": {"k":"defending"}
+                                    },
+                                    "zone": {"scope":"sameDef","of":"attacker"}
+                                  }
+                                },
+                                "b": 1
+                              }
+                            ]
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              },
+              "guns": [
+                {
+                  "amount": {"op":"targetField","target":"attacker","key":"sr"},
+                  "carried": {
+                    "op": "gte",
+                    "a": {"op":"targetField","target":"attacker","key":"sr"},
+                    "b": 1
+                  },
+                  "reaches": {
+                    "op": "or",
+                    "terms": [
+                      {
+                        "op": "and",
+                        "terms": [
+                          {
+                            "op": "and",
+                            "terms": [
+                              {
+                                "op": "and",
+                                "terms": [
+                                  {"op":"gte","a":{"op":"laneOf","target":"attacker"},"b":0},
+                                  {
+                                    "op": "or",
+                                    "terms": [
+                                      {"op":"atDepth","target":"attacker","depth":"front"},
+                                      {"op":"atDepth","target":"attacker","depth":"back"}
+                                    ]
+                                  }
+                                ]
+                              },
+                              {
+                                "op": "and",
+                                "terms": [
+                                  {"op":"gte","a":{"op":"laneOf","target":"target"},"b":0},
+                                  {
+                                    "op": "or",
+                                    "terms": [
+                                      {"op":"atDepth","target":"target","depth":"front"},
+                                      {"op":"atDepth","target":"target","depth":"back"}
+                                    ]
+                                  }
+                                ]
+                              }
+                            ]
+                          },
+                          {
+                            "op": "and",
+                            "terms": [
+                              {
+                                "op": "not",
+                                "term": {
+                                  "op": "and",
+                                  "terms": [
+                                    {"op":"atDepth","target":"target","depth":"back"},
+                                    {
+                                      "op": "gte",
+                                      "a": {
+                                        "op": "count",
+                                        "filter": {
+                                          "controller": {"k":"controllerOf","target":"target"},
+                                          "where": {
+                                            "op": "and",
+                                            "terms": [
+                                              {
+                                                "op": "eq",
+                                                "a": {"op":"laneOf","target":"subject"},
+                                                "b": {"op":"laneOf","target":"target"}
+                                              },
+                                              {"op":"atDepth","target":"subject","depth":"front"}
+                                            ]
+                                          }
+                                        }
+                                      },
+                                      "b": 1
+                                    },
+                                    {
+                                      "op": "not",
+                                      "term": {
+                                        "op": "hasKeyword",
+                                        "target": "attacker",
+                                        "keyword": "reach"
+                                      }
+                                    }
+                                  ]
+                                }
+                              },
+                              {
+                                "op": "eq",
+                                "a": {"op":"laneOf","target":"attacker"},
+                                "b": {"op":"laneOf","target":"target"}
+                              }
+                            ]
+                          }
+                        ]
+                      },
+                      {
+                        "op": "and",
+                        "terms": [
+                          {
+                            "op": "not",
+                            "term": {
+                              "op": "and",
+                              "terms": [
+                                {
+                                  "op": "and",
+                                  "terms": [
+                                    {"op":"gte","a":{"op":"laneOf","target":"attacker"},"b":0},
+                                    {
+                                      "op": "or",
+                                      "terms": [
+                                        {"op":"atDepth","target":"attacker","depth":"front"},
+                                        {"op":"atDepth","target":"attacker","depth":"back"}
+                                      ]
+                                    }
+                                  ]
+                                },
+                                {
+                                  "op": "and",
+                                  "terms": [
+                                    {"op":"gte","a":{"op":"laneOf","target":"target"},"b":0},
+                                    {
+                                      "op": "or",
+                                      "terms": [
+                                        {"op":"atDepth","target":"target","depth":"front"},
+                                        {"op":"atDepth","target":"target","depth":"back"}
+                                      ]
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          },
+                          {
+                            "op": "or",
+                            "terms": [
+                              {"op":"hasKeyword","target":"attacker","keyword":"reach"},
+                              {
+                                "op": "gte",
+                                "a": {"op":"targetField","target":"attacker","key":"lr"},
+                                "b": 1
+                              },
+                              {"op":"zoneOwner","target":"attacker"},
+                              {"op":"zoneOwner","target":"target"},
+                              {
+                                "op": "gte",
+                                "a": {
+                                  "op": "count",
+                                  "filter": {
+                                    "only": "target",
+                                    "zone": {"scope":"sameDef","of":"attacker"}
+                                  }
+                                },
+                                "b": 1
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  "reachesFace": {
+                    "op": "or",
+                    "terms": [
+                      {
+                        "op": "and",
+                        "terms": [
+                          {
+                            "op": "and",
+                            "terms": [
+                              {"op":"gte","a":{"op":"laneOf","target":"attacker"},"b":0},
+                              {
+                                "op": "or",
+                                "terms": [
+                                  {"op":"atDepth","target":"attacker","depth":"front"},
+                                  {"op":"atDepth","target":"attacker","depth":"back"}
+                                ]
+                              }
+                            ]
+                          },
+                          {
+                            "op": "and",
+                            "terms": [
+                              {"op":"gte","a":{"op":"laneOf","target":"attacker"},"b":0},
+                              {
+                                "op": "not",
+                                "term": {
+                                  "op": "gte",
+                                  "a": {
+                                    "op": "count",
+                                    "filter": {
+                                      "controller": {"k":"defending"},
+                                      "where": {
+                                        "op": "and",
+                                        "terms": [
+                                          {
+                                            "op": "eq",
+                                            "a": {"op":"laneOf","target":"subject"},
+                                            "b": {"op":"laneOf","target":"attacker"}
+                                          },
+                                          {
+                                            "op": "and",
+                                            "terms": [
+                                              {
+                                                "op": "gte",
+                                                "a": {"op":"laneOf","target":"subject"},
+                                                "b": 0
+                                              },
+                                              {
+                                                "op": "or",
+                                                "terms": [
+                                                  {
+                                                    "op": "atDepth",
+                                                    "target": "subject",
+                                                    "depth": "front"
+                                                  },
+                                                  {
+                                                    "op": "atDepth",
+                                                    "target": "subject",
+                                                    "depth": "back"
+                                                  }
+                                                ]
+                                              }
+                                            ]
+                                          }
+                                        ]
+                                      }
+                                    }
+                                  },
+                                  "b": 1
+                                }
+                              }
+                            ]
+                          }
+                        ]
+                      },
+                      {
+                        "op": "and",
+                        "terms": [
+                          {
+                            "op": "not",
+                            "term": {
+                              "op": "and",
+                              "terms": [
+                                {"op":"gte","a":{"op":"laneOf","target":"attacker"},"b":0},
+                                {
+                                  "op": "or",
+                                  "terms": [
+                                    {"op":"atDepth","target":"attacker","depth":"front"},
+                                    {"op":"atDepth","target":"attacker","depth":"back"}
+                                  ]
+                                }
+                              ]
+                            }
+                          },
+                          {
+                            "op": "not",
+                            "term": {
+                              "op": "and",
+                              "terms": [
+                                {"op":"not","term":{"op":"zoneOwner","target":"attacker"}},
+                                {
+                                  "op": "gte",
+                                  "a": {
+                                    "op": "count",
+                                    "filter": {
+                                      "where": {
+                                        "op": "zoneOwner",
+                                        "target": "subject",
+                                        "who": {"k":"defending"}
+                                      },
+                                      "zone": {"scope":"sameDef","of":"attacker"}
+                                    }
+                                  },
+                                  "b": 1
+                                }
+                              ]
+                            }
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  "label": "close"
+                },
+                {
+                  "amount": {"op":"targetField","target":"attacker","key":"lr"},
+                  "carried": {
+                    "op": "gte",
+                    "a": {"op":"targetField","target":"attacker","key":"lr"},
+                    "b": 1
+                  },
+                  "reaches": {
+                    "op": "or",
+                    "terms": [
+                      {
+                        "op": "and",
+                        "terms": [
+                          {
+                            "op": "and",
+                            "terms": [
+                              {
+                                "op": "and",
+                                "terms": [
+                                  {"op":"gte","a":{"op":"laneOf","target":"attacker"},"b":0},
+                                  {
+                                    "op": "or",
+                                    "terms": [
+                                      {"op":"atDepth","target":"attacker","depth":"front"},
+                                      {"op":"atDepth","target":"attacker","depth":"back"}
+                                    ]
+                                  }
+                                ]
+                              },
+                              {
+                                "op": "and",
+                                "terms": [
+                                  {"op":"gte","a":{"op":"laneOf","target":"target"},"b":0},
+                                  {
+                                    "op": "or",
+                                    "terms": [
+                                      {"op":"atDepth","target":"target","depth":"front"},
+                                      {"op":"atDepth","target":"target","depth":"back"}
+                                    ]
+                                  }
+                                ]
+                              }
+                            ]
+                          },
+                          {
+                            "op": "not",
+                            "term": {
+                              "op": "and",
+                              "terms": [
+                                {"op":"atDepth","target":"target","depth":"back"},
+                                {
+                                  "op": "gte",
+                                  "a": {
+                                    "op": "count",
+                                    "filter": {
+                                      "controller": {"k":"controllerOf","target":"target"},
+                                      "where": {
+                                        "op": "and",
+                                        "terms": [
+                                          {
+                                            "op": "eq",
+                                            "a": {"op":"laneOf","target":"subject"},
+                                            "b": {"op":"laneOf","target":"target"}
+                                          },
+                                          {"op":"atDepth","target":"subject","depth":"front"}
+                                        ]
+                                      }
+                                    }
+                                  },
+                                  "b": 1
+                                },
+                                {
+                                  "op": "not",
+                                  "term": {"op":"hasKeyword","target":"attacker","keyword":"reach"}
+                                }
+                              ]
+                            }
+                          }
+                        ]
+                      },
+                      {
+                        "op": "and",
+                        "terms": [
+                          {
+                            "op": "not",
+                            "term": {
+                              "op": "and",
+                              "terms": [
+                                {
+                                  "op": "and",
+                                  "terms": [
+                                    {"op":"gte","a":{"op":"laneOf","target":"attacker"},"b":0},
+                                    {
+                                      "op": "or",
+                                      "terms": [
+                                        {"op":"atDepth","target":"attacker","depth":"front"},
+                                        {"op":"atDepth","target":"attacker","depth":"back"}
+                                      ]
+                                    }
+                                  ]
+                                },
+                                {
+                                  "op": "and",
+                                  "terms": [
+                                    {"op":"gte","a":{"op":"laneOf","target":"target"},"b":0},
+                                    {
+                                      "op": "or",
+                                      "terms": [
+                                        {"op":"atDepth","target":"target","depth":"front"},
+                                        {"op":"atDepth","target":"target","depth":"back"}
+                                      ]
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          },
+                          {
+                            "op": "or",
+                            "terms": [
+                              {"op":"hasKeyword","target":"attacker","keyword":"reach"},
+                              {
+                                "op": "gte",
+                                "a": {"op":"targetField","target":"attacker","key":"lr"},
+                                "b": 1
+                              },
+                              {"op":"zoneOwner","target":"attacker"},
+                              {"op":"zoneOwner","target":"target"},
+                              {
+                                "op": "gte",
+                                "a": {
+                                  "op": "count",
+                                  "filter": {
+                                    "only": "target",
+                                    "zone": {"scope":"sameDef","of":"attacker"}
+                                  }
+                                },
+                                "b": 1
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  "reachesFace": {
+                    "op": "or",
+                    "terms": [
+                      {
+                        "op": "and",
+                        "terms": [
+                          {
+                            "op": "and",
+                            "terms": [
+                              {"op":"gte","a":{"op":"laneOf","target":"attacker"},"b":0},
+                              {
+                                "op": "or",
+                                "terms": [
+                                  {"op":"atDepth","target":"attacker","depth":"front"},
+                                  {"op":"atDepth","target":"attacker","depth":"back"}
+                                ]
+                              }
+                            ]
+                          },
+                          {
+                            "op": "and",
+                            "terms": [
+                              {"op":"gte","a":{"op":"laneOf","target":"attacker"},"b":0},
+                              {
+                                "op": "not",
+                                "term": {
+                                  "op": "gte",
+                                  "a": {
+                                    "op": "count",
+                                    "filter": {
+                                      "controller": {"k":"defending"},
+                                      "where": {
+                                        "op": "and",
+                                        "terms": [
+                                          {
+                                            "op": "eq",
+                                            "a": {"op":"laneOf","target":"subject"},
+                                            "b": {"op":"laneOf","target":"attacker"}
+                                          },
+                                          {
+                                            "op": "and",
+                                            "terms": [
+                                              {
+                                                "op": "gte",
+                                                "a": {"op":"laneOf","target":"subject"},
+                                                "b": 0
+                                              },
+                                              {
+                                                "op": "or",
+                                                "terms": [
+                                                  {
+                                                    "op": "atDepth",
+                                                    "target": "subject",
+                                                    "depth": "front"
+                                                  },
+                                                  {
+                                                    "op": "atDepth",
+                                                    "target": "subject",
+                                                    "depth": "back"
+                                                  }
+                                                ]
+                                              }
+                                            ]
+                                          }
+                                        ]
+                                      }
+                                    }
+                                  },
+                                  "b": 1
+                                }
+                              }
+                            ]
+                          }
+                        ]
+                      },
+                      {
+                        "op": "and",
+                        "terms": [
+                          {
+                            "op": "not",
+                            "term": {
+                              "op": "and",
+                              "terms": [
+                                {"op":"gte","a":{"op":"laneOf","target":"attacker"},"b":0},
+                                {
+                                  "op": "or",
+                                  "terms": [
+                                    {"op":"atDepth","target":"attacker","depth":"front"},
+                                    {"op":"atDepth","target":"attacker","depth":"back"}
+                                  ]
+                                }
+                              ]
+                            }
+                          },
+                          {
+                            "op": "not",
+                            "term": {
+                              "op": "and",
+                              "terms": [
+                                {"op":"not","term":{"op":"zoneOwner","target":"attacker"}},
+                                {
+                                  "op": "gte",
+                                  "a": {
+                                    "op": "count",
+                                    "filter": {
+                                      "where": {
+                                        "op": "zoneOwner",
+                                        "target": "subject",
+                                        "who": {"k":"defending"}
+                                      },
+                                      "zone": {"scope":"sameDef","of":"attacker"}
+                                    }
+                                  },
+                                  "b": 1
+                                }
+                              ]
+                            }
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  "label": "far"
+                }
+              ],
+              "lethal": {"where":{"op":"hasKeyword","target":"subject","keyword":"deathtouch"}},
+              "window": true
+            }
+          ]
+        }
+      }
+    },
+    "turn": {
+      "mode": "shared",
+      "phases": [
+        {
+          "name": "regroup",
+          "interactive": false,
+          "onEnter": {
+            "op": "forEach",
+            "filter": {"controller":"you"},
+            "body": {"op":"tap","target":"each","untap":true}
+          }
+        },
+        {"name":"upkeep","interactive":false},
+        {"name":"action","sorcerySpeed":true},
+        {"name":"combat","combat":true},
+        {
+          "name": "end",
+          "interactive": false,
+          "onEnter": {
+            "op": "sequence",
+            "steps": [
+              {"op":"forEach","filter":{},"body":{"op":"clearDamage","target":"each"}},
+              {
+                "op": "discard",
+                "who": "you",
+                "count": {
+                  "op": "max",
+                  "a": 0,
+                  "b": {
+                    "op": "sub",
+                    "a": {"op":"handSize","who":"you"},
+                    "b": {"op":"param","name":"maxHandSize"}
+                  }
+                }
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "params": {
+      "hand": 5,
+      "draw": 0,
+      "skipFirstDraw": false,
+      "mulligan": {"redraws":0,"bottomOne":true},
+      "maxHand": 7,
+      "players": 2,
+      "orientation": "either",
+      "poolPersistsPerTurn": true,
+      "attackDelayOnEntry": true,
+      "poolStore": "store"
+    },
+    "counters": [{"name":"store","starting":0,"loseAtZero":false}],
+    "damageCounter": null,
+    "counterKinds": [
+      {"name":"charge"},
+      {"name":"hull"},
+      {"name":"shield"},
+      {"name":"store"},
+      {"name":"stowed"}
+    ]
+  },
+  "sets": [
+    {
+      "name": "Core",
+      "cards": [
+        {
+          "faces": [
+            {
+              "name": "Tessellate Spire",
+              "types": ["Station"],
+              "fields": {"powerUp":1},
+              "triggers": [
+                {
+                  "op": "onYourPhase",
+                  "effect": {
+                    "op": "sequence",
+                    "steps": [
+                      {"op":"draw","who":"you","count":1},
+                      {
+                        "op": "addMana",
+                        "who": "you",
+                        "mana": {
+                          "": {
+                            "op": "add",
+                            "a": 1,
+                            "b": {
+                              "op": "mul",
+                              "a": {"op":"selfField","key":"powerUp"},
+                              "b": {"op":"selfCounter","kind":"stowed"}
+                            }
+                          }
+                        }
+                      },
+                      {"op":"addCounter","kind":"charge","count":1,"target":"self"}
+                    ]
+                  },
+                  "order": 0,
+                  "phase": "action"
+                }
+              ],
+              "activated": [
+                {
+                  "cost": {},
+                  "effect": {
+                    "op": "sequence",
+                    "steps": [
+                      {"op":"discard","who":"you","count":1,"toZone":"exile"},
+                      {"op":"addCounter","kind":"stowed","count":1,"target":"self"}
+                    ]
+                  },
+                  "name": "Stow a card from hand: +1 production each round",
+                  "oncePerTurn": true
+                },
+                {
+                  "cost": {"mana":{"":2}},
+                  "effect": {
+                    "op": "choose",
+                    "filter": {},
+                    "body": {
+                      "op": "sequence",
+                      "steps": [
+                        {
+                          "op": "dealDamage",
+                          "amount": {"op":"selfCounter","kind":"charge"},
+                          "target": "chosen"
+                        },
+                        {
+                          "op": "removeCounter",
+                          "kind": "charge",
+                          "count": {"op":"selfCounter","kind":"charge"},
+                          "target": "self"
+                        }
+                      ]
+                    }
+                  },
+                  "name": "{2}: spend all charge as damage to any target",
+                  "oncePerTurn": false
+                }
+              ],
+              "replacements": [
+                {
+                  "kind": "damageToRemoveCounter",
+                  "filter": {"types":["Station"],"controller":"you"},
+                  "counter": "shield"
+                }
+              ]
+            }
+          ],
+          "entersWith": [
+            {"kind":"hull","initial":20},
+            {"kind":"store","initial":4},
+            {"kind":"shield","initial":2}
+          ]
+        },
+        {
+          "faces": [
+            {
+              "name": "Warden Oleyn",
+              "types": ["Leader"],
+              "activated": [
+                {
+                  "cost": {"mana":{"":1},"tapSource":true},
+                  "effect": {
+                    "op": "createToken",
+                    "chars": {"name":"Sentinel","types":["Ship"],"fields":{"sr":1,"lr":1,"hull":1}},
+                    "count": 1
+                  },
+                  "name": "{1}, exhaust: create a 1/1/1 Sentinel",
+                  "oncePerTurn": false
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "faces": [{"name":"Bastion Drone","types":["Ship"],"fields":{"sr":2,"hull":3}}],
+          "entersWith": [{"kind":"hull","initial":3}],
+          "cost": {"mana":{"":2}}
+        },
+        {
+          "faces": [{"name":"Aegis Frame","types":["Ship"],"fields":{"lr":3,"hull":4}}],
+          "entersWith": [{"kind":"hull","initial":4}],
+          "cost": {
+            "mana": {"":3},
+            "alternatives": [
+              {
+                "mana": {"":1},
+                "payFrom": {
+                  "counter": "shield",
+                  "n": 1,
+                  "filter": {"types":["Station"],"controller":"you"}
+                }
+              }
+            ]
+          }
+        },
+        {
+          "faces": [{"name":"Tessellate Hulk","types":["Ship"],"fields":{"sr":2,"lr":4,"hull":8}}],
+          "entersWith": [{"kind":"hull","initial":8}],
+          "cost": {
+            "mana": {"":5},
+            "alternatives": [
+              {
+                "mana": {"":3},
+                "payFrom": {
+                  "counter": "shield",
+                  "n": 1,
+                  "filter": {"types":["Station"],"controller":"you"}
+                }
+              },
+              {
+                "mana": {"":1},
+                "payFrom": {
+                  "counter": "shield",
+                  "n": 2,
+                  "filter": {"types":["Station"],"controller":"you"}
+                }
+              }
+            ]
+          }
+        },
+        {
+          "faces": [
+            {
+              "name": "Interlock Barge",
+              "types": ["Ship"],
+              "fields": {"sr":1,"lr":2,"hull":9},
+              "triggers": [
+                {
+                  "op": "selfEnters",
+                  "effect": {
+                    "op": "forEach",
+                    "filter": {"types":["Ship"],"excludesSource":true,"zone":{"scope":"sameDef"}},
+                    "body": {"op":"dealDamage","amount":5,"target":"each"}
+                  },
+                  "order": 0
+                }
+              ]
+            }
+          ],
+          "entersWith": [{"kind":"hull","initial":9}],
+          "cost": {
+            "mana": {"":4},
+            "alternatives": [
+              {
+                "mana": {"":2},
+                "payFrom": {
+                  "counter": "shield",
+                  "n": 1,
+                  "filter": {"types":["Station"],"controller":"you"}
+                }
+              },
+              {
+                "mana": {"":0},
+                "payFrom": {
+                  "counter": "shield",
+                  "n": 2,
+                  "filter": {"types":["Station"],"controller":"you"}
+                }
+              }
+            ]
+          }
+        },
+        {
+          "faces": [
+            {
+              "name": "Enfilade",
+              "types": ["Manoeuvre"],
+              "castEffect": {
+                "op": "chooseMode",
+                "pick": 1,
+                "options": [
+                  {
+                    "op": "sequence",
+                    "steps": [
+                      {
+                        "op": "forEach",
+                        "filter": {"types":["Ship"],"zone":{"scope":"named","def":"1F"}},
+                        "body": {"op":"dealDamage","amount":6,"target":"each"}
+                      },
+                      {
+                        "op": "forEach",
+                        "filter": {"types":["Ship"],"zone":{"scope":"named","def":"1B"}},
+                        "body": {"op":"dealDamage","amount":6,"target":"each"}
+                      }
+                    ]
+                  },
+                  {
+                    "op": "sequence",
+                    "steps": [
+                      {
+                        "op": "forEach",
+                        "filter": {"types":["Ship"],"zone":{"scope":"named","def":"2F"}},
+                        "body": {"op":"dealDamage","amount":6,"target":"each"}
+                      },
+                      {
+                        "op": "forEach",
+                        "filter": {"types":["Ship"],"zone":{"scope":"named","def":"2B"}},
+                        "body": {"op":"dealDamage","amount":6,"target":"each"}
+                      }
+                    ]
+                  },
+                  {
+                    "op": "sequence",
+                    "steps": [
+                      {
+                        "op": "forEach",
+                        "filter": {"types":["Ship"],"zone":{"scope":"named","def":"3F"}},
+                        "body": {"op":"dealDamage","amount":6,"target":"each"}
+                      },
+                      {
+                        "op": "forEach",
+                        "filter": {"types":["Ship"],"zone":{"scope":"named","def":"3B"}},
+                        "body": {"op":"dealDamage","amount":6,"target":"each"}
+                      }
+                    ]
+                  },
+                  {
+                    "op": "choose",
+                    "filter": {"types":["Ship"]},
+                    "body": {"op":"destroy","target":"chosen"}
+                  }
+                ]
+              }
+            }
+          ],
+          "text": "Choose a lane: deal 6 to each Ship in it, both sides; or destroy target Ship.",
+          "cost": {"mana":{"":2}}
+        },
+        {
+          "faces": [
+            {
+              "name": "Ablative Screen",
+              "types": ["Manoeuvre"],
+              "castEffect": {
+                "op": "choose",
+                "filter": {"types":["Ship"],"controller":"you"},
+                "body": {
+                  "op": "preventDamage",
+                  "target": "chosen",
+                  "amount": 0,
+                  "all": true,
+                  "duration": {"kind":"endOfTurn"},
+                  "mode": "points"
+                }
+              }
+            }
+          ],
+          "text": "Prevent all damage to target Ship you control this round.",
+          "cost": {"mana":{"":2}}
+        },
+        {
+          "faces": [
+            {
+              "name": "Full Stop",
+              "types": ["Doctrine"],
+              "ruleMods": [{"op":"cantAttack","filter":{"types":["Ship"]}}],
+              "triggers": [
+                {
+                  "op": "selfEnters",
+                  "effect": {
+                    "op": "delayed",
+                    "on": {"kind":"onPhase","phase":"end"},
+                    "effect": {"op":"destroy","target":"self"},
+                    "once": true,
+                    "duration": {"kind":"permanent"}
+                  },
+                  "order": 0
+                }
+              ]
+            }
+          ],
+          "text": "No Ship can attack. Destroyed at end of round.",
+          "cost": {
+            "mana": {"":3},
+            "alternatives": [
+              {
+                "mana": {"":1},
+                "payFrom": {
+                  "counter": "shield",
+                  "n": 1,
+                  "filter": {"types":["Station"],"controller":"you"}
+                }
+              }
+            ]
+          }
+        },
+        {
+          "faces": [
+            {
+              "name": "Requisition Spar",
+              "types": ["Doctrine"],
+              "triggers": [
+                {
+                  "op": "onYourPhase",
+                  "effect": {"op":"addMana","who":"you","mana":{"":1}},
+                  "order": 0,
+                  "phase": "action"
+                }
+              ]
+            }
+          ],
+          "text": "At your action phase, add {1}.",
+          "cost": {"mana":{"":2}}
+        },
+        {
+          "faces": [
+            {
+              "name": "Bastion Anchor",
+              "types": ["Ship","Flagship"],
+              "fields": {"sr":1,"lr":2,"hull":8},
+              "ruleMods": [
+                {"op":"reduceDamage","filter":{"types":["Ship"],"controller":"you"},"amount":1}
+              ]
+            }
+          ],
+          "entersWith": [{"kind":"hull","initial":8}],
+          "cost": {
+            "mana": {"":4},
+            "alternatives": [
+              {
+                "mana": {"":2},
+                "payFrom": {
+                  "counter": "shield",
+                  "n": 1,
+                  "filter": {"types":["Station"],"controller":"you"}
+                }
+              },
+              {
+                "mana": {"":0},
+                "payFrom": {
+                  "counter": "shield",
+                  "n": 2,
+                  "filter": {"types":["Station"],"controller":"you"}
+                }
+              }
+            ]
+          }
+        },
+        {
+          "faces": [
+            {
+              "name": "Ward Conduit",
+              "types": ["Ship","Flagship"],
+              "fields": {"lr":2,"hull":7},
+              "activated": [
+                {
+                  "cost": {"mana":{"":2},"tapSource":true},
+                  "effect": {
+                    "op": "choose",
+                    "filter": {"types":["Ship"],"controller":"you"},
+                    "body": {
+                      "op": "preventDamage",
+                      "target": "chosen",
+                      "amount": 0,
+                      "all": true,
+                      "duration": {"kind":"endOfTurn"},
+                      "mode": "points"
+                    }
+                  },
+                  "name": "{2}, exhaust: prevent all damage to a Ship you control",
+                  "oncePerTurn": false
+                }
+              ]
+            }
+          ],
+          "entersWith": [{"kind":"hull","initial":7}],
+          "cost": {
+            "mana": {"":3},
+            "alternatives": [
+              {
+                "mana": {"":1},
+                "payFrom": {
+                  "counter": "shield",
+                  "n": 1,
+                  "filter": {"types":["Station"],"controller":"you"}
+                }
+              }
+            ]
+          }
+        },
+        {
+          "faces": [
+            {"name":"Spire Warden","types":["Ship","Flagship"],"fields":{"sr":2,"lr":5,"hull":14}}
+          ],
+          "entersWith": [{"kind":"hull","initial":14}],
+          "cost": {
+            "mana": {"":5},
+            "alternatives": [
+              {
+                "mana": {"":3},
+                "payFrom": {
+                  "counter": "shield",
+                  "n": 1,
+                  "filter": {"types":["Station"],"controller":"you"}
+                }
+              },
+              {
+                "mana": {"":1},
+                "payFrom": {
+                  "counter": "shield",
+                  "n": 2,
+                  "filter": {"types":["Station"],"controller":"you"}
+                }
+              }
+            ]
+          }
+        },
+        {
+          "faces": [
+            {
+              "name": "Kite Lance",
+              "types": ["Ship","Flagship"],
+              "fields": {"sr":4,"lr":1,"hull":4},
+              "keywords": ["reach"]
+            }
+          ],
+          "entersWith": [{"kind":"hull","initial":4}],
+          "cost": {
+            "mana": {"":3},
+            "alternatives": [
+              {
+                "mana": {"":1},
+                "payFrom": {
+                  "counter": "shield",
+                  "n": 1,
+                  "filter": {"types":["Station"],"controller":"you"}
+                }
+              }
+            ]
+          }
+        },
+        {
+          "faces": [
+            {
+              "name": "Signal Kite",
+              "types": ["Ship","Flagship"],
+              "fields": {"sr":3,"lr":2,"hull":6},
+              "triggers": [
+                {
+                  "op": "selfEnters",
+                  "effect": {
+                    "op": "choose",
+                    "filter": {"types":["Ship"]},
+                    "body": {"op":"dealDamage","amount":4,"target":"chosen"}
+                  },
+                  "order": 0
+                }
+              ],
+              "activated": [
+                {
+                  "cost": {"mana":{"":1},"tapSource":true},
+                  "effect": {
+                    "op": "choose",
+                    "filter": {"types":["Ship"]},
+                    "body": {"op":"dealDamage","amount":4,"target":"chosen"}
+                  },
+                  "name": "{1}, exhaust: 4 damage to target Ship",
+                  "oncePerTurn": false
+                }
+              ]
+            }
+          ],
+          "entersWith": [{"kind":"hull","initial":6}],
+          "cost": {
+            "mana": {"":5},
+            "alternatives": [
+              {
+                "mana": {"":3},
+                "payFrom": {
+                  "counter": "shield",
+                  "n": 1,
+                  "filter": {"types":["Station"],"controller":"you"}
+                }
+              },
+              {
+                "mana": {"":1},
+                "payFrom": {
+                  "counter": "shield",
+                  "n": 2,
+                  "filter": {"types":["Station"],"controller":"you"}
+                }
+              }
+            ]
+          }
+        },
+        {
+          "faces": [
+            {"name":"Storm Kite","types":["Ship","Flagship"],"fields":{"sr":6,"lr":3,"hull":10}}
+          ],
+          "entersWith": [{"kind":"hull","initial":10}],
+          "cost": {
+            "mana": {"":5},
+            "alternatives": [
+              {
+                "mana": {"":3},
+                "payFrom": {
+                  "counter": "shield",
+                  "n": 1,
+                  "filter": {"types":["Station"],"controller":"you"}
+                }
+              },
+              {
+                "mana": {"":1},
+                "payFrom": {
+                  "counter": "shield",
+                  "n": 2,
+                  "filter": {"types":["Station"],"controller":"you"}
+                }
+              }
+            ]
+          }
+        },
+        {
+          "faces": [
+            {"name":"Harrow Bastion","types":["Ship","Flagship"],"fields":{"lr":2,"hull":9}}
+          ],
+          "entersWith": [{"kind":"hull","initial":9}],
+          "cost": {
+            "mana": {"":4},
+            "alternatives": [
+              {
+                "mana": {"":2},
+                "payFrom": {
+                  "counter": "shield",
+                  "n": 1,
+                  "filter": {"types":["Station"],"controller":"you"}
+                }
+              },
+              {
+                "mana": {"":0},
+                "payFrom": {
+                  "counter": "shield",
+                  "n": 2,
+                  "filter": {"types":["Station"],"controller":"you"}
+                }
+              }
+            ]
+          }
+        },
+        {
+          "faces": [
+            {
+              "name": "Siege Adjutant",
+              "types": ["Ship","Flagship"],
+              "fields": {"sr":2,"lr":2,"hull":8},
+              "activated": [
+                {
+                  "cost": {"mana":{"":2},"tapSource":true},
+                  "effect": {
+                    "op": "choose",
+                    "filter": {"types":["Ship"]},
+                    "body": {"op":"dealDamage","amount":6,"target":"chosen"}
+                  },
+                  "name": "{2}, exhaust: 6 damage to target Ship",
+                  "oncePerTurn": false
+                }
+              ]
+            }
+          ],
+          "entersWith": [{"kind":"hull","initial":8}],
+          "cost": {
+            "mana": {"":5},
+            "alternatives": [
+              {
+                "mana": {"":3},
+                "payFrom": {
+                  "counter": "shield",
+                  "n": 1,
+                  "filter": {"types":["Station"],"controller":"you"}
+                }
+              },
+              {
+                "mana": {"":1},
+                "payFrom": {
+                  "counter": "shield",
+                  "n": 2,
+                  "filter": {"types":["Station"],"controller":"you"}
+                }
+              }
+            ]
+          }
+        },
+        {
+          "faces": [
+            {"name":"Bulwark Prime","types":["Ship","Flagship"],"fields":{"sr":2,"lr":4,"hull":15}}
+          ],
+          "entersWith": [{"kind":"hull","initial":15}],
+          "cost": {
+            "mana": {"":5},
+            "alternatives": [
+              {
+                "mana": {"":3},
+                "payFrom": {
+                  "counter": "shield",
+                  "n": 1,
+                  "filter": {"types":["Station"],"controller":"you"}
+                }
+              },
+              {
+                "mana": {"":1},
+                "payFrom": {
+                  "counter": "shield",
+                  "n": 2,
+                  "filter": {"types":["Station"],"controller":"you"}
+                }
+              }
+            ]
+          }
+        },
+        {
+          "faces": [
+            {
+              "name": "Kite Anchorage",
+              "types": ["Station"],
+              "fields": {"powerUp":1},
+              "triggers": [
+                {
+                  "op": "onYourPhase",
+                  "effect": {
+                    "op": "sequence",
+                    "steps": [
+                      {"op":"draw","who":"you","count":1},
+                      {
+                        "op": "addMana",
+                        "who": "you",
+                        "mana": {
+                          "": {
+                            "op": "add",
+                            "a": 1,
+                            "b": {
+                              "op": "mul",
+                              "a": {"op":"selfField","key":"powerUp"},
+                              "b": {"op":"selfCounter","kind":"stowed"}
+                            }
+                          }
+                        }
+                      }
+                    ]
+                  },
+                  "order": 0,
+                  "phase": "action"
+                }
+              ],
+              "activated": [
+                {
+                  "cost": {},
+                  "effect": {
+                    "op": "sequence",
+                    "steps": [
+                      {"op":"discard","who":"you","count":1,"toZone":"exile"},
+                      {"op":"addCounter","kind":"stowed","count":1,"target":"self"}
+                    ]
+                  },
+                  "name": "Stow a card from hand: +1 production each round",
+                  "oncePerTurn": true
+                }
+              ],
+              "replacements": [
+                {
+                  "kind": "damageToRemoveCounter",
+                  "filter": {"types":["Station"],"controller":"you"},
+                  "counter": "shield"
+                }
+              ]
+            }
+          ],
+          "entersWith": [
+            {"kind":"hull","initial":20},
+            {"kind":"store","initial":1},
+            {"kind":"shield","initial":1}
+          ]
+        },
+        {
+          "faces": [
+            {
+              "name": "Signal-Master Rhee",
+              "types": ["Leader"],
+              "activated": [
+                {
+                  "cost": {"mana":{"":1},"tapSource":true},
+                  "effect": {
+                    "op": "choose",
+                    "filter": {"types":["Ship"]},
+                    "body": {"op":"dealDamage","amount":3,"target":"chosen"}
+                  },
+                  "name": "{1}, exhaust: 3 damage to target Ship",
+                  "oncePerTurn": false
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "faces": [
+            {"name":"Kite Runner","types":["Ship"],"fields":{"sr":2,"hull":2},"keywords":["reach"]}
+          ],
+          "entersWith": [{"kind":"hull","initial":2}],
+          "cost": {"mana":{"":2}}
+        },
+        {
+          "faces": [{"name":"Spar Cutter","types":["Ship"],"fields":{"sr":4,"lr":1,"hull":4}}],
+          "entersWith": [{"kind":"hull","initial":4}],
+          "cost": {
+            "mana": {"":3},
+            "alternatives": [
+              {
+                "mana": {"":1},
+                "payFrom": {
+                  "counter": "shield",
+                  "n": 1,
+                  "filter": {"types":["Station"],"controller":"you"}
+                }
+              }
+            ]
+          }
+        },
+        {
+          "faces": [{"name":"Longspar","types":["Ship"],"fields":{"sr":5,"lr":2,"hull":5}}],
+          "entersWith": [{"kind":"hull","initial":5}],
+          "cost": {
+            "mana": {"":4},
+            "alternatives": [
+              {
+                "mana": {"":2},
+                "payFrom": {
+                  "counter": "shield",
+                  "n": 1,
+                  "filter": {"types":["Station"],"controller":"you"}
+                }
+              },
+              {
+                "mana": {"":0},
+                "payFrom": {
+                  "counter": "shield",
+                  "n": 2,
+                  "filter": {"types":["Station"],"controller":"you"}
+                }
+              }
+            ]
+          }
+        },
+        {
+          "faces": [
+            {
+              "name": "Pinpoint Lance",
+              "types": ["Manoeuvre"],
+              "castEffect": {
+                "op": "choose",
+                "filter": {"types":["Ship"]},
+                "body": {"op":"dealDamage","amount":3,"target":"chosen"}
+              }
+            }
+          ],
+          "cost": {"mana":{"":1}}
+        },
+        {
+          "faces": [
+            {
+              "name": "Arc Salvo",
+              "types": ["Manoeuvre"],
+              "castEffect": {
+                "op": "choose",
+                "filter": {},
+                "body": {"op":"dealDamage","amount":4,"target":"chosen"}
+              }
+            }
+          ],
+          "text": "Deal 4 damage to any target.",
+          "cost": {"mana":{"":2}}
+        },
+        {
+          "faces": [
+            {
+              "name": "Harrow Vault",
+              "types": ["Station"],
+              "fields": {"powerUp":1},
+              "triggers": [
+                {
+                  "op": "onYourPhase",
+                  "effect": {
+                    "op": "sequence",
+                    "steps": [
+                      {"op":"draw","who":"you","count":1},
+                      {
+                        "op": "addMana",
+                        "who": "you",
+                        "mana": {
+                          "": {
+                            "op": "add",
+                            "a": 1,
+                            "b": {
+                              "op": "mul",
+                              "a": {"op":"selfField","key":"powerUp"},
+                              "b": {"op":"selfCounter","kind":"stowed"}
+                            }
+                          }
+                        }
+                      }
+                    ]
+                  },
+                  "order": 0,
+                  "phase": "action"
+                },
+                {
+                  "op": "counterThreshold",
+                  "effect": {
+                    "op": "forEach",
+                    "filter": {"types":["Ship"]},
+                    "body": {"op":"dealDamage","amount":6,"target":"each"}
+                  },
+                  "order": 0,
+                  "kind": "shield",
+                  "k": 3,
+                  "down": true
+                },
+                {
+                  "op": "counterThreshold",
+                  "effect": {
+                    "op": "forEach",
+                    "filter": {"types":["Ship"]},
+                    "body": {"op":"dealDamage","amount":6,"target":"each"}
+                  },
+                  "order": 0,
+                  "kind": "shield",
+                  "k": 2,
+                  "down": true
+                },
+                {
+                  "op": "counterThreshold",
+                  "effect": {
+                    "op": "forEach",
+                    "filter": {"types":["Ship"]},
+                    "body": {"op":"dealDamage","amount":6,"target":"each"}
+                  },
+                  "order": 0,
+                  "kind": "shield",
+                  "k": 1,
+                  "down": true
+                }
+              ],
+              "activated": [
+                {
+                  "cost": {},
+                  "effect": {
+                    "op": "sequence",
+                    "steps": [
+                      {"op":"discard","who":"you","count":1,"toZone":"exile"},
+                      {"op":"addCounter","kind":"stowed","count":1,"target":"self"}
+                    ]
+                  },
+                  "name": "Stow a card from hand: +1 production each round",
+                  "oncePerTurn": true
+                }
+              ],
+              "replacements": [
+                {
+                  "kind": "damageToRemoveCounter",
+                  "filter": {"types":["Station"],"controller":"you"},
+                  "counter": "shield"
+                }
+              ]
+            }
+          ],
+          "entersWith": [
+            {"kind":"hull","initial":24},
+            {"kind":"store","initial":3},
+            {"kind":"shield","initial":3}
+          ]
+        },
+        {
+          "faces": [
+            {
+              "name": "Adjutant Sperrin",
+              "types": ["Leader"],
+              "activated": [
+                {
+                  "cost": {"tapSource":true},
+                  "effect": {
+                    "op": "chooseMode",
+                    "pick": 1,
+                    "options": [
+                      {
+                        "op": "sequence",
+                        "steps": [
+                          {
+                            "op": "forEach",
+                            "filter": {
+                              "types": ["Ship"],
+                              "controller": "opponent",
+                              "zone": {"scope":"named","def":"1F"}
+                            },
+                            "body": {"op":"dealDamage","amount":1,"target":"each"}
+                          },
+                          {
+                            "op": "forEach",
+                            "filter": {
+                              "types": ["Ship"],
+                              "controller": "opponent",
+                              "zone": {"scope":"named","def":"1B"}
+                            },
+                            "body": {"op":"dealDamage","amount":1,"target":"each"}
+                          }
+                        ]
+                      },
+                      {
+                        "op": "sequence",
+                        "steps": [
+                          {
+                            "op": "forEach",
+                            "filter": {
+                              "types": ["Ship"],
+                              "controller": "opponent",
+                              "zone": {"scope":"named","def":"2F"}
+                            },
+                            "body": {"op":"dealDamage","amount":1,"target":"each"}
+                          },
+                          {
+                            "op": "forEach",
+                            "filter": {
+                              "types": ["Ship"],
+                              "controller": "opponent",
+                              "zone": {"scope":"named","def":"2B"}
+                            },
+                            "body": {"op":"dealDamage","amount":1,"target":"each"}
+                          }
+                        ]
+                      },
+                      {
+                        "op": "sequence",
+                        "steps": [
+                          {
+                            "op": "forEach",
+                            "filter": {
+                              "types": ["Ship"],
+                              "controller": "opponent",
+                              "zone": {"scope":"named","def":"3F"}
+                            },
+                            "body": {"op":"dealDamage","amount":1,"target":"each"}
+                          },
+                          {
+                            "op": "forEach",
+                            "filter": {
+                              "types": ["Ship"],
+                              "controller": "opponent",
+                              "zone": {"scope":"named","def":"3B"}
+                            },
+                            "body": {"op":"dealDamage","amount":1,"target":"each"}
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  "name": "Exhaust: choose a lane, 1 damage to each enemy Ship in it",
+                  "oncePerTurn": false
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "faces": [{"name":"Aegis Bulwark","types":["Ship"],"fields":{"lr":1,"hull":8}}],
+          "entersWith": [{"kind":"hull","initial":8}],
+          "cost": {
+            "mana": {"":3},
+            "alternatives": [
+              {
+                "mana": {"":1},
+                "payFrom": {
+                  "counter": "shield",
+                  "n": 1,
+                  "filter": {"types":["Station"],"controller":"you"}
+                }
+              }
+            ]
+          }
+        },
+        {
+          "faces": [{"name":"Bulwark Spar","types":["Ship"],"fields":{"lr":2,"hull":7}}],
+          "entersWith": [{"kind":"hull","initial":7}],
+          "cost": {
+            "mana": {"":3},
+            "alternatives": [
+              {
+                "mana": {"":1},
+                "payFrom": {
+                  "counter": "shield",
+                  "n": 1,
+                  "filter": {"types":["Station"],"controller":"you"}
+                }
+              }
+            ]
+          }
+        },
+        {
+          "faces": [{"name":"Rampart Hulk","types":["Ship"],"fields":{"sr":3,"lr":5,"hull":13}}],
+          "entersWith": [{"kind":"hull","initial":13}],
+          "cost": {
+            "mana": {"":5},
+            "alternatives": [
+              {
+                "mana": {"":3},
+                "payFrom": {
+                  "counter": "shield",
+                  "n": 1,
+                  "filter": {"types":["Station"],"controller":"you"}
+                }
+              },
+              {
+                "mana": {"":1},
+                "payFrom": {
+                  "counter": "shield",
+                  "n": 2,
+                  "filter": {"types":["Station"],"controller":"you"}
+                }
+              }
+            ]
+          }
+        },
+        {
+          "faces": [
+            {
+              "name": "Pinning Shot",
+              "types": ["Manoeuvre"],
+              "castEffect": {
+                "op": "chooseMany",
+                "filter": {"types":["Ship"]},
+                "count": 2,
+                "upTo": true,
+                "body": {"op":"dealDamage","amount":4,"target":"each"}
+              }
+            }
+          ],
+          "cost": {"mana":{"":1}}
+        },
+        {
+          "faces": [
+            {
+              "name": "Harrowing Fire",
+              "types": ["Manoeuvre"],
+              "castEffect": {
+                "op": "chooseMode",
+                "pick": 1,
+                "options": [
+                  {
+                    "op": "sequence",
+                    "steps": [
+                      {
+                        "op": "forEach",
+                        "filter": {
+                          "types": ["Ship"],
+                          "controller": "opponent",
+                          "zone": {"scope":"named","def":"1F"}
+                        },
+                        "body": {"op":"dealDamage","amount":8,"target":"each"}
+                      },
+                      {
+                        "op": "forEach",
+                        "filter": {
+                          "types": ["Ship"],
+                          "controller": "opponent",
+                          "zone": {"scope":"named","def":"1B"}
+                        },
+                        "body": {"op":"dealDamage","amount":8,"target":"each"}
+                      }
+                    ]
+                  },
+                  {
+                    "op": "sequence",
+                    "steps": [
+                      {
+                        "op": "forEach",
+                        "filter": {
+                          "types": ["Ship"],
+                          "controller": "opponent",
+                          "zone": {"scope":"named","def":"2F"}
+                        },
+                        "body": {"op":"dealDamage","amount":8,"target":"each"}
+                      },
+                      {
+                        "op": "forEach",
+                        "filter": {
+                          "types": ["Ship"],
+                          "controller": "opponent",
+                          "zone": {"scope":"named","def":"2B"}
+                        },
+                        "body": {"op":"dealDamage","amount":8,"target":"each"}
+                      }
+                    ]
+                  },
+                  {
+                    "op": "sequence",
+                    "steps": [
+                      {
+                        "op": "forEach",
+                        "filter": {
+                          "types": ["Ship"],
+                          "controller": "opponent",
+                          "zone": {"scope":"named","def":"3F"}
+                        },
+                        "body": {"op":"dealDamage","amount":8,"target":"each"}
+                      },
+                      {
+                        "op": "forEach",
+                        "filter": {
+                          "types": ["Ship"],
+                          "controller": "opponent",
+                          "zone": {"scope":"named","def":"3B"}
+                        },
+                        "body": {"op":"dealDamage","amount":8,"target":"each"}
+                      }
+                    ]
+                  },
+                  {"op":"draw","who":"you","count":2}
+                ]
+              }
+            }
+          ],
+          "text": "Choose a lane: deal 8 to each Ship an opponent controls in it; or draw 2 cards.",
+          "cost": {
+            "mana": {"":3},
+            "alternatives": [
+              {
+                "mana": {"":1},
+                "payFrom": {
+                  "counter": "shield",
+                  "n": 1,
+                  "filter": {"types":["Station"],"controller":"you"}
+                }
+              }
+            ]
+          }
+        },
+        {
+          "faces": [
+            {
+              "name": "Culling Sweep",
+              "types": ["Directive"],
+              "castEffect": {
+                "op": "forEach",
+                "filter": {"types":["Ship"],"controller":"opponent"},
+                "body": {"op":"dealDamage","amount":8,"target":"each"}
+              }
+            }
+          ],
+          "cost": {
+            "mana": {"":4},
+            "alternatives": [
+              {
+                "mana": {"":2},
+                "payFrom": {
+                  "counter": "shield",
+                  "n": 1,
+                  "filter": {"types":["Station"],"controller":"you"}
+                }
+              },
+              {
+                "mana": {"":0},
+                "payFrom": {
+                  "counter": "shield",
+                  "n": 2,
+                  "filter": {"types":["Station"],"controller":"you"}
+                }
+              }
+            ]
+          }
+        },
+        {
+          "faces": [
+            {
+              "name": "Converging Fire",
+              "types": ["Directive"],
+              "castEffect": {
+                "op": "choose",
+                "filter": {},
+                "body": {
+                  "op": "dealDamage",
+                  "amount": {"op":"count","filter":{"types":["Ship"],"controller":"you"}},
+                  "target": "chosen"
+                }
+              }
+            }
+          ],
+          "text": "Deal damage to any target equal to the number of Ships you control.",
+          "cost": {
+            "mana": {"":3},
+            "alternatives": [
+              {
+                "mana": {"":1},
+                "payFrom": {
+                  "counter": "shield",
+                  "n": 1,
+                  "filter": {"types":["Station"],"controller":"you"}
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "decks": [
+    {
+      "name": "Tessellate Union",
+      "entries": [
+        {"card":"Requisition Spar","n":4},
+        {"card":"Bastion Drone","n":6},
+        {"card":"Aegis Frame","n":5},
+        {"card":"Tessellate Hulk","n":5},
+        {"card":"Interlock Barge","n":5},
+        {"card":"Enfilade","n":3},
+        {"card":"Ablative Screen","n":3}
+      ],
+      "slots": {
+        "Station": ["Tessellate Spire"],
+        "Leader": ["Warden Oleyn"],
+        "Flagship": ["Bastion Anchor","Ward Conduit","Spire Warden"]
+      }
+    },
+    {
+      "name": "Kite Flotilla",
+      "entries": [
+        {"card":"Requisition Spar","n":4},
+        {"card":"Kite Runner","n":6},
+        {"card":"Spar Cutter","n":5},
+        {"card":"Longspar","n":5},
+        {"card":"Pinpoint Lance","n":5},
+        {"card":"Arc Salvo","n":4}
+      ],
+      "slots": {
+        "Station": ["Kite Anchorage"],
+        "Leader": ["Signal-Master Rhee"],
+        "Flagship": ["Kite Lance","Signal Kite","Storm Kite"]
+      }
+    },
+    {
+      "name": "Harrow Compact",
+      "entries": [
+        {"card":"Requisition Spar","n":4},
+        {"card":"Bulwark Spar","n":4},
+        {"card":"Aegis Bulwark","n":3},
+        {"card":"Rampart Hulk","n":4},
+        {"card":"Pinning Shot","n":4},
+        {"card":"Harrowing Fire","n":4},
+        {"card":"Converging Fire","n":3},
+        {"card":"Ablative Screen","n":2},
+        {"card":"Full Stop","n":2}
+      ],
+      "slots": {
+        "Station": ["Harrow Vault"],
+        "Leader": ["Adjutant Sperrin"],
+        "Flagship": ["Harrow Bastion","Siege Adjutant","Bulwark Prime"]
+      }
+    }
+  ],
+  "deckRules": {
+    "slots": [
+      {"name":"Station","types":["Station"]},
+      {"name":"Leader","types":["Leader"]},
+      {"name":"Flagship","types":["Flagship"],"count":3,"startsIn":"flagships"}
+    ]
+  }
+}

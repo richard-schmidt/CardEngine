@@ -1,0 +1,78 @@
+{
+  "formatVersion": 8,
+  "id": "sample-op",
+  "name": "Open Seas (One Piece-like)",
+  "rules": {
+    "extraTypes": [
+      {"name":"Character","fields":["power"],"attacks":true},
+      {"name":"Leader","fields":["power"]},
+      {"name":"Event","isSpell":true}
+    ],
+    "combat": {"kind":"preset","name":"onePiece"},
+    "params": {
+      "hand": 5,
+      "draw": 1,
+      "skipFirstDraw": true,
+      "mulligan": {"redraws":0,"bottomOne":true},
+      "players": 2,
+      "orientation": "landscape",
+      "poolPersistsPerTurn": false
+    },
+    "resources": {"kind":"ramp","perTurn":1,"cap":10,"refill":true,"start":0,"key":""},
+    "counters": [{"name":"life","starting":5,"loseAtZero":true}],
+    "counterKinds": []
+  },
+  "sets": [
+    {
+      "name": "Core",
+      "cards": [
+        {"faces":[{"name":"Rookie Captain","types":["Leader"],"fields":{"power":5000}}]},
+        {"faces":[{"name":"Deckhand","types":["Character"],"fields":{"power":2000}}]},
+        {
+          "faces": [
+            {
+              "name": "Ship Navigator",
+              "types": ["Character"],
+              "fields": {"power":3000},
+              "triggers": [
+                {"op":"selfEnters","effect":{"op":"draw","who":"you","count":1},"order":0}
+              ]
+            }
+          ]
+        },
+        {"faces":[{"name":"First Mate","types":["Character"],"fields":{"power":5000}}]},
+        {"faces":[{"name":"Harbour Officer","types":["Character"],"fields":{"power":4000}}]},
+        {"faces":[{"name":"Sea Tyrant","types":["Character"],"fields":{"power":7000}}]},
+        {
+          "faces": [
+            {
+              "name": "Flurry of Blows",
+              "types": ["Event"],
+              "castEffect": {"op":"damageOpponent","amount":1}
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "decks": [
+    {
+      "name": "Rookie Crew",
+      "entries": [
+        {"card":"Deckhand","n":4},
+        {"card":"Ship Navigator","n":4},
+        {"card":"First Mate","n":4},
+        {"card":"Harbour Officer","n":4},
+        {"card":"Sea Tyrant","n":4},
+        {"card":"Flurry of Blows","n":4}
+      ],
+      "slots": {"Leader":["Rookie Captain"]}
+    }
+  ],
+  "deckRules": {
+    "minSize": 24,
+    "maxSize": 60,
+    "maxCopies": 4,
+    "slots": [{"name":"Leader","types":["Leader"]}]
+  }
+}

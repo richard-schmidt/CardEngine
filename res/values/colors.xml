@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="card_fill">#FFFFFF</color>
+    <color name="card_border">#E2E2E2</color>
+    <color name="card_shadow">#1A000000</color>
+    <!-- WCAG AA: #888888
+         measured 3.46-3.54:1 against this theme's card_fill/background, under
+         the 4.5:1 minimum for normal text. #707070 measures ~4.94:1, same
+         mid-gray family, just dark enough to pass. Don't revert to #888888. -->
+    <color name="text_secondary">#707070</color>
+    <color name="text_primary">#222222</color>
+    <color name="status_error">#CC3333</color>
+    <color name="status_warning">#CC8800</color>
+    <color name="status_success">#2E7D32</color>
+    <color name="status_ready">#1976D2</color>
+    <color name="status_pending">#FBC02D</color>
+    <color name="conversation_bubble_bg">#11000000</color>
+    <color name="ripple_tint">#334F6FE0</color>
+</resources>

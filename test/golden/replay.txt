@@ -1,0 +1,46 @@
+EPR Skirmish|0|0|20260925|8ed49f1a6bc0ef17
+EPR Skirmish|0|0|7|cf48d4e503ff0d4d
+EPR Skirmish|0|1|20260925|fab3e2342d9b2d72
+EPR Skirmish|0|1|7|933077834df2f885
+EPR Skirmish|0|2|20260925|37da96ba57afd05d
+EPR Skirmish|0|2|7|7fea6136e375acfe
+EPR Skirmish|1|0|20260925|c0ba71b7eb0d0b31
+EPR Skirmish|1|0|7|ac8997f256640aa2
+EPR Skirmish|1|1|20260925|af410fad339fa59d
+EPR Skirmish|1|1|7|65af11782fdaf5ab
+EPR Skirmish|1|2|20260925|07981a206a76c2f1
+EPR Skirmish|1|2|7|91a1ef1af41d51b7
+EPR Skirmish|2|0|20260925|9228f059b912ccf7
+EPR Skirmish|2|0|7|753a80aef3cdadab
+EPR Skirmish|2|1|20260925|33925195ba978d01
+EPR Skirmish|2|1|7|c4e7b09a391aadf3
+EPR Skirmish|2|2|20260925|aa014147cb399001
+EPR Skirmish|2|2|7|2b581ed3adb1c65a
+Core|0|0|20260925|9e6a82aece3ea401
+Core|0|0|7|6b2611af90e9df88
+Core|0|1|20260925|eb6cfa44aa611fea
+Core|0|1|7|72c8ab5f60eebf6e
+Core|0|2|20260925|487e599babbb4da4
+Core|0|2|7|5c3c26074e70f936
+Core|1|0|20260925|f159170f20da8392
+Core|1|0|7|6c2f0716a97dcfba
+Core|1|1|20260925|366da56fce2d0b8c
+Core|1|1|7|5730b8547401b97c
+Core|1|2|20260925|dd510cdb819171c9
+Core|1|2|7|b88bc79d77df3ffe
+Core|2|0|20260925|b1a0cbe0f74999e7
+Core|2|0|7|eeb85b3980299cdb
+Core|2|1|20260925|a433506e53186222
+Core|2|1|7|374dddabddf3c61f
+Core|2|2|20260925|059253f1478c57ea
+Core|2|2|7|0e540fa2dcf0745f
+Sparkfield (MTG-like)|0|0|20260925|5f1fca3cf402920a
+Sparkfield (MTG-like)|0|0|7|d7cdfef02671dc86
+Duel Arena (Yu-Gi-Oh-like)|0|0|20260925|29c7d62c23238f0f
+Duel Arena (Yu-Gi-Oh-like)|0|0|7|7f13b86fc67f244e
+War Table (SW: Unlimited-like)|0|0|20260925|09d6468c13677f74
+War Table (SW: Unlimited-like)|0|0|7|14aac3183c20d847
+Open Seas (One Piece-like)|0|0|20260925|5de1a2dd72e2fad1
+Open Seas (One Piece-like)|0|0|7|e30427b7dbb1f8b6
+Crossroads Arena (Hearthstone-like)|0|0|20260925|6394f54fa1677308
+Crossroads Arena (Hearthstone-like)|0|0|7|59f8d8a3a13b504b

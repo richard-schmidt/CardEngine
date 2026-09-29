@@ -1,0 +1,70 @@
+{
+  "formatVersion": 8,
+  "id": "sample-mtg",
+  "name": "Sparkfield (MTG-like)",
+  "rules": {
+    "combat": {"kind":"preset","name":"mtg"},
+    "resources": {"kind":"cardDriven","playsPerTurn":1,"types":["Land"]},
+    "counterKinds": []
+  },
+  "sets": [
+    {
+      "name": "Base",
+      "cards": [
+        {"faces":[{"name":"Barren Ground","types":["Land"]}]},
+        {"faces":[{"name":"River Scout","types":["Creature"],"fields":{"power":2,"toughness":1}}]},
+        {
+          "faces": [
+            {"name":"Stone Sentinel","types":["Creature"],"fields":{"power":3,"toughness":4}}
+          ]
+        },
+        {"faces":[{"name":"Ironhide Ox","types":["Creature"],"fields":{"power":4,"toughness":4}}]},
+        {
+          "faces": [
+            {
+              "name": "Warhorn Herald",
+              "types": ["Creature"],
+              "fields": {"power":1,"toughness":1},
+              "triggers": [
+                {"op":"selfEnters","effect":{"op":"draw","who":"you","count":1},"order":0}
+              ]
+            }
+          ]
+        },
+        {
+          "faces": [
+            {
+              "name": "Ember Bolt",
+              "types": ["Instant"],
+              "castEffect": {
+                "op": "choose",
+                "filter": {"types":["Creature"]},
+                "body": {"op":"dealDamage","amount":3,"target":"chosen"}
+              }
+            }
+          ]
+        },
+        {
+          "faces": [
+            {"name":"Skyfire","types":["Sorcery"],"castEffect":{"op":"damageOpponent","amount":3}}
+          ]
+        }
+      ]
+    }
+  ],
+  "decks": [
+    {
+      "name": "Midrange",
+      "entries": [
+        {"card":"Barren Ground","n":10},
+        {"card":"River Scout","n":3},
+        {"card":"Stone Sentinel","n":3},
+        {"card":"Ironhide Ox","n":2},
+        {"card":"Warhorn Herald","n":2},
+        {"card":"Ember Bolt","n":2},
+        {"card":"Skyfire","n":2}
+      ]
+    }
+  ],
+  "deckRules": {"minSize":24,"maxSize":60,"maxCopies":12}
+}

@@ -1,0 +1,102 @@
+{
+  "formatVersion": 8,
+  "id": "sample-ygo",
+  "name": "Duel Arena (Yu-Gi-Oh-like)",
+  "rules": {
+    "extraTypes": [
+      {"name":"Monster","fields":["power","defense"],"attacks":true},
+      {"name":"Spell","isSpell":true}
+    ],
+    "combat": {"kind":"preset","name":"yugioh"},
+    "params": {
+      "hand": 5,
+      "draw": 1,
+      "skipFirstDraw": true,
+      "mulligan": {"redraws":0,"bottomOne":true},
+      "maxHand": 6,
+      "players": 2,
+      "orientation": "landscape",
+      "poolPersistsPerTurn": false
+    },
+    "counters": [{"name":"life","starting":8000,"loseAtZero":true}],
+    "counterKinds": []
+  },
+  "sets": [
+    {
+      "name": "Core",
+      "cards": [
+        {
+          "faces": [
+            {"name":"Sparkwing Drake","types":["Monster"],"fields":{"power":1800,"defense":1000}}
+          ]
+        },
+        {
+          "faces": [
+            {"name":"Ironclad Sentry","types":["Monster"],"fields":{"power":1200,"defense":2000}}
+          ]
+        },
+        {
+          "faces": [
+            {"name":"Stray Golem","types":["Monster"],"fields":{"power":1400,"defense":1100}}
+          ]
+        },
+        {
+          "faces": [
+            {"name":"Bladewing Knight","types":["Monster"],"fields":{"power":1600,"defense":1200}}
+          ]
+        },
+        {
+          "faces": [
+            {"name":"Titan of Bronze","types":["Monster"],"fields":{"power":2400,"defense":2000}}
+          ]
+        },
+        {
+          "faces": [
+            {
+              "name": "Fleetfoot Sprite",
+              "types": ["Monster"],
+              "fields": {"power":800,"defense":600},
+              "triggers": [
+                {"op":"selfEnters","effect":{"op":"draw","who":"you","count":1},"order":0}
+              ]
+            }
+          ]
+        },
+        {
+          "faces": [
+            {
+              "name": "Fortune Draw",
+              "types": ["Spell"],
+              "castEffect": {"op":"draw","who":"you","count":2}
+            }
+          ]
+        },
+        {
+          "faces": [
+            {
+              "name": "Cinder Blast",
+              "types": ["Spell"],
+              "castEffect": {"op":"damageOpponent","amount":800}
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "decks": [
+    {
+      "name": "Beatdown",
+      "entries": [
+        {"card":"Sparkwing Drake","n":3},
+        {"card":"Ironclad Sentry","n":3},
+        {"card":"Stray Golem","n":3},
+        {"card":"Bladewing Knight","n":3},
+        {"card":"Titan of Bronze","n":3},
+        {"card":"Fleetfoot Sprite","n":3},
+        {"card":"Fortune Draw","n":3},
+        {"card":"Cinder Blast","n":3}
+      ]
+    }
+  ],
+  "deckRules": {"minSize":24,"maxSize":60,"maxCopies":3}
+}

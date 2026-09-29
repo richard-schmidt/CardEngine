@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!--
+      The app's own theme, and it exists for exactly one reason: to drop the
+      platform ActionBar.
+
+      The manifest asked for Theme.DeviceDefault.DayNight, whose ActionBar drew
+      a full bar showing nothing but the android:label ("CardEngine") above
+      every screen. The Creator already draws its own CgTopBar underneath it,
+      and the Player draws its own toolbar row, so that bar was duplicated
+      chrome everywhere and, on the play surface, a band of screen the lanes
+      could have had.
+
+      Written as a local style rather than switching the manifest to a
+      framework NoActionBar variant, because the framework has no
+      DayNight.NoActionBar: the DayNight and NoActionBar axes do not cross in
+      android:style. Inheriting DayNight and turning the bar off keeps the
+      automatic light/dark behaviour that res/values-night relies on.
+    -->
+    <style name="CardEngineTheme" parent="@android:style/Theme.DeviceDefault.DayNight">
+        <item name="android:windowActionBar">false</item>
+        <item name="android:windowNoTitle">true</item>
+    </style>
+</resources>

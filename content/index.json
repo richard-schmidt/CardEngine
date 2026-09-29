@@ -1,0 +1,10 @@
+{
+  "builtin": ["epr-skirmish", "core"],
+  "samples": [
+    "sparkfield-mtg-like",
+    "duel-arena-yu-gi-oh-like",
+    "war-table-sw-unlimited-like",
+    "open-seas-one-piece-like",
+    "crossroads-arena-hearthstone-like"
+  ]
+}

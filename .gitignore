@@ -1,0 +1,31 @@
+out/
+out-core/
+out-test/
+out-ui/
+*.apk
+debug.keystore
+__pycache__/
+*.pyc
+deps/
+.gradle/
+# Local-only: large binaries / DB snapshots. The README is tracked so a
+# clone still learns the directory exists and what belongs in it.
+backups/*
+!backups/README.md
+out-content/
+# Every scratch build output, including ones a future probe invents.
+out-*/
+agent/out/
+# Generated wrappers: build-agent.sh rewrites them and they embed an ABSOLUTE
+# path to this checkout, so a clone would get one pointing at another machine's
+# home directory. Run agent/build-agent.sh after a clone to create them.
+agent/cge
+agent/balance
+agent/probe
+agent/playmix
+agent/dumpdeadlock
+agent/pool
+agent/dump
+agent/economy
+# Build and probe logs.
+*.log

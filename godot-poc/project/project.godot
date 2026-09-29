@@ -1,0 +1,22 @@
+; CGE Godot export PoC -- Stage 0 / seeds Stage 1.
+; Lives on shared storage because Termux's home is drwx------ and the Godot
+; editor can never read it.
+
+config_version=5
+
+[application]
+
+config/name="CGE PoC"
+run/main_scene="res://main.tscn"
+config/features=PackedStringArray("4.7", "Mobile")
+
+[display]
+
+window/stretch/mode="canvas_items"
+window/stretch/aspect="expand"
+window/handheld/orientation=1
+
+[rendering]
+
+renderer/rendering_method="mobile"
+renderer/rendering_method.mobile="mobile"
