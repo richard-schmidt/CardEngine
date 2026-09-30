@@ -10,6 +10,22 @@ a different combat model. The project also ships its own game, EPR Skirmish.
 Scope is games playable on paper. This is a personal prototype,
 developed on-device in Termux.
 
+## Why
+
+A card game's rules are a small language: triggers, targets, costs, timing.
+CardEngine treats them as one. Rules are compiled, not hard-coded, so one engine
+plays games with different combat models, and a game file that names a card or
+zone that does not exist fails with a located message instead of misplaying.
+State is immutable and seeded, so every game can be replayed and undone exactly,
+and the conformance corpus pins that behaviour down for any second
+implementation.
+
+<p>
+<img src="docs/screenshots/table.png" width="260" alt="The hotseat table in the Core game: a ship waiting for a lane">
+<img src="docs/screenshots/card-editor.png" width="260" alt="The Creator: a card's trigger as editable blocks">
+<img src="docs/screenshots/rulebox.png" width="260" alt="The same card's compiled rulebox">
+</p>
+
 ## Guides
 
 - [User guide](docs/guide/user-guide.md): the app, creating a game step by step,
@@ -75,6 +91,11 @@ The content files and the corpus are what a second implementation of the rules
 reads. Such a port conforms when it
 reproduces every state digest in the corpus. The digest is defined in
 `src/ccg/Digest.kt`.
+
+## About this repository
+
+Developed in a private repository and published here as snapshot commits, so
+the history is short by design.
 
 ## License
 
